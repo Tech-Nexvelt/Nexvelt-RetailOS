@@ -23,7 +23,9 @@
     "retailos:verify:schema": "node scripts/verify-schema.mjs",
     "schema:app-check": "node scripts/check-app-schema.mjs",
     "env:check": "node scripts/env-check.mjs",
-    "backup:verify": "node scripts/verify-backup.mjs"
+    "backup:verify": "node scripts/verify-backup.mjs",
+    "predeploy": "npm run typecheck && npm run lint && npm test && npm run schema:app-check && npm run retailos:manifest:check && npm run build",
+    "smoke:deployed": "node scripts/smoke-deployed.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.7",

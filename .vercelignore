@@ -1,0 +1,12 @@
+# Never upload secrets, local-only material or tooling state when deploying from this folder with the Vercel CLI.
+.env
+.env.*
+!.env.example
+.local
+.claude
+archive
+ui-prototype-archive
+supabase/.temp
+supabase/retailos/prod-ca-2021.crt
+*.tsbuildinfo
+backups

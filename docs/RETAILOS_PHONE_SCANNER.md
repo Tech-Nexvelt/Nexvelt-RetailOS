@@ -2,6 +2,8 @@
 
 The phone is the scanner; the billing computer is the terminal. The phone decodes barcodes on-device and sends **only the barcode text**. The computer resolves it with the existing `scanBarcode` lookup and the existing cart. Checkout, payment, receipts and stock stay on the computer, and a scan can never start any of them.
 
+**Deployment over https:** see `docs/RETAILOS_DEPLOY_HTTPS.md`.
+
 **Status:** implemented and tested with mocks and on the hosted project with two browser tabs. **A real phone-camera test has not been done** (see section 7).
 
 ## 1. How to pair (what the cashier does)
