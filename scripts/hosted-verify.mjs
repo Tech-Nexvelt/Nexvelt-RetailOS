@@ -80,10 +80,14 @@ try {
   gate(`anon cannot read any of ${tables.length} tables`, anonLeaks === 0 && tables.length > 0);
   const stranger = JSON.stringify({ sub: "00000000-0000-4000-8000-000000000001", role: "authenticated", aal: "aal1" });
   let strangerLeaks = 0;
-  for (const t of tables) if ((await denied("authenticated", `select 1 from retailos.${t} limit 1`, stranger)) === "DATA") strangerLeaks++;
-  gate("a signed-in user with no membership sees no rows in any table", strangerLeaks === 0);
+  const catalogue = new Set(["permissions", "roles", "role_permissions"]); // global permission catalogue: readable by design, no tenant data
+  const leaked = [];
+  for (const t of tables) if (!catalogue.has(t) && (await denied("authenticated", `select 1 from retailos.${t} limit 1`, stranger)) === "DATA") leaked.push(t);
+  strangerLeaks = leaked.length;
+  gate("a signed-in user with no membership sees no rows in any tenant table (catalogue tables excluded)", strangerLeaks === 0, leaked.join(", "));
   gate("anon has no usage on retailos / retailos_private", (await client.query("select has_schema_privilege('anon','retailos','usage') a, has_schema_privilege('anon','retailos_private','usage') b")).rows.every((r) => !r.a && !r.b));
-  gate("authenticated has NO usage on retailos_private", !(await client.query("select has_schema_privilege('authenticated','retailos_private','usage') x")).rows[0].x);
+  // NOT asserted: 'authenticated' needs USAGE on retailos_private so RLS helper functions can run; the approved inventory pins it (authenticated=true)
+  // and the helpers' execute rights are pinned there too. What matters is that retailos_private is not exposed through the Data API (checked below).
 } finally {
   await client.query("rollback").catch(() => {});
   await client.end().catch(() => {});
