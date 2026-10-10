@@ -25,12 +25,22 @@ const hidden = (label) =>
   new Promise((resolve) => {
     process.stdout.write(label);
     let buf = "";
+    let esc = false;
     const stdin = process.stdin;
     stdin.setRawMode?.(true);
     stdin.resume();
     stdin.setEncoding("utf8");
     const onData = (ch) => {
       for (const c of ch) {
+        if (esc) {
+          // inside a terminal escape sequence (bracketed-paste markers, arrow keys): never part of the value
+          if (/[A-Za-z~]/.test(c)) esc = false;
+          continue;
+        }
+        if (c === "\u001b") {
+          esc = true;
+          continue;
+        }
         if (c === "\r" || c === "\n" || c === "\u0004") {
           stdin.setRawMode?.(false);
           stdin.pause();
@@ -62,6 +72,10 @@ if (what === "token") {
     process.exit(1);
   }
   const pw = await hidden("NEW database password (hidden): ");
+  if (/[^\x21-\x7e]/.test(pw)) {
+    console.error("ABORT: the password contains spaces, control or non-ASCII characters; nothing was saved. Use a letters-and-digits password and retry.");
+    process.exit(1);
+  }
   if (pw.length < 8) {
     console.error("ABORT: password too short");
     process.exit(1);
