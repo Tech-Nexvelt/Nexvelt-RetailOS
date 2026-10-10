@@ -1,6 +1,6 @@
-# `supabase/retailos` — the RetailOS database for the SHARED Tirumala/RetailOS Supabase project
+# `supabase/retailos` — the RetailOS database for its own DEDICATED Supabase project
 
-**Status: NOT APPLIED to any database.** Applying anything here to the live project needs separate, explicit approval. Read `docs/RETAILOS_PRODUCTION_PREFLIGHT.md` first.
+**Status: NOT APPLIED to any hosted database.** Applying anything here needs explicit approval of the exact manifest. Read `docs/RETAILOS_NEW_PROJECT_CHECKLIST.md` first. The shared-project (Tirumala) phase is archived in `/archive/shared-project` and must not be used.
 
 | Path | What it is |
 |---|---|

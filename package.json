@@ -19,6 +19,8 @@
     "retailos:seal": "node scripts/seal-migrations.mjs supabase/retailos/migrations",
     "retailos:manifest": "node scripts/retailos-manifest.mjs",
     "retailos:manifest:check": "node scripts/retailos-manifest.mjs --check",
+    "retailos:verify:update": "node scripts/verify-update.mjs",
+    "retailos:verify:schema": "node scripts/verify-schema.mjs",
     "env:check": "node scripts/env-check.mjs",
     "backup:verify": "node scripts/verify-backup.mjs"
   },

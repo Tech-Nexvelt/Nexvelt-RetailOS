@@ -223,8 +223,9 @@ describe("a freshly migrated dedicated project", () => {
     if (UPDATE) fs.writeFileSync(ROLLBACK, text);
     const current = fs.readFileSync(ROLLBACK, "utf8");
     expect(current).toBe(text);
-    expect(current).not.toMatch(/cascade/i);
-    expect(current).not.toMatch(/\bpublic\./i);
+    const statements = current.replace(/--.*$/gm, ""); // the header comments may say "no CASCADE"; no statement may use it
+    expect(statements).not.toMatch(/cascade/i);
+    expect(statements).not.toMatch(/\bpublic\./i);
   });
 
   it("anonymous callers can reach nothing: every table, every function, both schemas", async () => {
@@ -297,19 +298,22 @@ describe("a freshly migrated dedicated project", () => {
         });
       }
     }
+    const categoryOfA = (await c.query("select id from retailos.categories where tenant_id = $1 limit 1", [w.tenantA])).rows[0]?.id as string;
+    expect(categoryOfA).toBeTruthy();
     const before = (await c.query("select name from retailos.products where tenant_id = $1 order by id", [w.tenantA])).rows;
     await asUser(c, w.ownerB, async (x) => {
       expect((await x.query("update retailos.products set name = 'hacked' where tenant_id = $1", [w.tenantA])).rowCount).toBe(0);
       expect((await x.query("update retailos.tenants set trade_name = 'hacked' where id = $1", [w.tenantA])).rowCount).toBe(0);
-      expect(await refused(x, "insert into retailos.products (tenant_id, name, category_id) select $1, 'planted', id from retailos.categories limit 1", [w.tenantA])).toBeTruthy();
+      // use a REAL category of the first business so the insert has a row to attempt (the other business owns none)
+      expect(await refused(x, "insert into retailos.products (tenant_id, name, category_id) values ($1, 'planted', $2)", [w.tenantA, categoryOfA])).toBeTruthy();
       expect(await refused(x, "delete from retailos.products where tenant_id = $1", [w.tenantA])).toBeTruthy();
     });
     expect((await c.query("select name from retailos.products where tenant_id = $1 order by id", [w.tenantA])).rows).toEqual(before);
   });
 
-  it("every tenant-owned table declares tenant_id NOT NULL (only the system role catalogue may have none)", async () => {
+  it("every tenant-owned table declares tenant_id NOT NULL (only the system role catalogue and platform-level audit events may have none)", async () => {
     const r = await c.query("select table_name from information_schema.columns where table_schema = 'retailos' and column_name = 'tenant_id' and is_nullable = 'YES' order by 1");
-    expect((r.rows as { table_name: string }[]).map((x) => x.table_name)).toEqual(["roles"]);
+    expect((r.rows as { table_name: string }[]).map((x) => x.table_name)).toEqual(["audit_logs", "roles"]); // audit_logs: platform events may have no tenant; its read policy requires tenant_id is not null
   });
 
   it("the schema marker records the application and version, and is invisible to API roles and write-once", async () => {

@@ -1,0 +1,1013 @@
+auth_users_triggers|auth.users|0
+column|retailos.audit_logs.action|text notnull=true default=- identity= generated=
+column|retailos.audit_logs.actor_type|text notnull=true default=39adc87b01c2d0ab6b3c8b867fbf24b8 identity= generated=
+column|retailos.audit_logs.actor_user_id|uuid notnull=false default=- identity= generated=
+column|retailos.audit_logs.after|jsonb notnull=false default=- identity= generated=
+column|retailos.audit_logs.before|jsonb notnull=false default=- identity= generated=
+column|retailos.audit_logs.branch_id|uuid notnull=false default=- identity= generated=
+column|retailos.audit_logs.entity_id|uuid notnull=false default=- identity= generated=
+column|retailos.audit_logs.entity_type|text notnull=true default=- identity= generated=
+column|retailos.audit_logs.id|bigint notnull=true default=- identity=a generated=
+column|retailos.audit_logs.metadata|jsonb notnull=false default=- identity= generated=
+column|retailos.audit_logs.occurred_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.audit_logs.reason|text notnull=false default=- identity= generated=
+column|retailos.audit_logs.tenant_id|uuid notnull=false default=- identity= generated=
+column|retailos.barcode_aliases.code|text notnull=true default=- identity= generated=
+column|retailos.barcode_aliases.created_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.barcode_aliases.id|uuid notnull=true default=f3b72bb359a50b640590970a2ab8e514 identity= generated=
+column|retailos.barcode_aliases.is_active|boolean notnull=true default=b326b5062b2f0e69046810717534cb09 identity= generated=
+column|retailos.barcode_aliases.is_primary|boolean notnull=true default=b326b5062b2f0e69046810717534cb09 identity= generated=
+column|retailos.barcode_aliases.jewellery_item_id|uuid notnull=false default=- identity= generated=
+column|retailos.barcode_aliases.source|text notnull=true default=2660770475f3f7496d6af15eecedefbe identity= generated=
+column|retailos.barcode_aliases.symbology|text notnull=true default=a7b63baaea4392b835f2631e757f224c identity= generated=
+column|retailos.barcode_aliases.target_type|text notnull=true default=- identity= generated=
+column|retailos.barcode_aliases.tenant_id|uuid notnull=true default=- identity= generated=
+column|retailos.barcode_aliases.variant_id|uuid notnull=false default=- identity= generated=
+column|retailos.branch_memberships.branch_id|uuid notnull=true default=- identity= generated=
+column|retailos.branch_memberships.created_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.branch_memberships.id|uuid notnull=true default=f3b72bb359a50b640590970a2ab8e514 identity= generated=
+column|retailos.branch_memberships.role_id|uuid notnull=true default=- identity= generated=
+column|retailos.branch_memberships.role_scope|text notnull=false default=ef1ae952dbec23e931658d2430946af1 identity= generated=s
+column|retailos.branch_memberships.status|text notnull=true default=1ef27142415a17e0aa700023e4db2a0d identity= generated=
+column|retailos.branch_memberships.tenant_id|uuid notnull=true default=- identity= generated=
+column|retailos.branch_memberships.updated_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.branch_memberships.user_id|uuid notnull=true default=- identity= generated=
+column|retailos.branches.code|text notnull=true default=- identity= generated=
+column|retailos.branches.created_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.branches.gstin|text notnull=false default=- identity= generated=
+column|retailos.branches.id|uuid notnull=true default=f3b72bb359a50b640590970a2ab8e514 identity= generated=
+column|retailos.branches.invoice_prefix|text notnull=true default=8b6e3e1d6308be9daf923d5313e54d53 identity= generated=
+column|retailos.branches.name|text notnull=true default=- identity= generated=
+column|retailos.branches.state_code|character(2) notnull=true default=- identity= generated=
+column|retailos.branches.status|text notnull=true default=1ef27142415a17e0aa700023e4db2a0d identity= generated=
+column|retailos.branches.tenant_id|uuid notnull=true default=- identity= generated=
+column|retailos.branches.timezone|text notnull=true default=5ba035277f568c00e01233cfc3088a80 identity= generated=
+column|retailos.branches.updated_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.brands.created_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.brands.id|uuid notnull=true default=f3b72bb359a50b640590970a2ab8e514 identity= generated=
+column|retailos.brands.is_active|boolean notnull=true default=b326b5062b2f0e69046810717534cb09 identity= generated=
+column|retailos.brands.name|text notnull=true default=- identity= generated=
+column|retailos.brands.tenant_id|uuid notnull=true default=- identity= generated=
+column|retailos.cash_sessions.branch_id|uuid notnull=true default=- identity= generated=
+column|retailos.cash_sessions.business_date|date notnull=true default=- identity= generated=
+column|retailos.cash_sessions.closed_at|timestamp with time zone notnull=false default=- identity= generated=
+column|retailos.cash_sessions.closed_by|uuid notnull=false default=- identity= generated=
+column|retailos.cash_sessions.counter_id|uuid notnull=true default=- identity= generated=
+column|retailos.cash_sessions.id|uuid notnull=true default=f3b72bb359a50b640590970a2ab8e514 identity= generated=
+column|retailos.cash_sessions.opened_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.cash_sessions.opened_by|uuid notnull=true default=ddeb331049bfce569b78a580d1e1abe4 identity= generated=
+column|retailos.cash_sessions.opening_float|numeric(14,2) notnull=true default=- identity= generated=
+column|retailos.cash_sessions.status|text notnull=true default=51db0d03a8e59aa38bbbdebaab92b86d identity= generated=
+column|retailos.cash_sessions.tenant_id|uuid notnull=true default=- identity= generated=
+column|retailos.categories.created_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.categories.hsn_code|text notnull=false default=- identity= generated=
+column|retailos.categories.id|uuid notnull=true default=f3b72bb359a50b640590970a2ab8e514 identity= generated=
+column|retailos.categories.is_active|boolean notnull=true default=b326b5062b2f0e69046810717534cb09 identity= generated=
+column|retailos.categories.name|text notnull=true default=- identity= generated=
+column|retailos.categories.product_kind|text notnull=true default=- identity= generated=
+column|retailos.categories.tax_class_id|uuid notnull=false default=- identity= generated=
+column|retailos.categories.tenant_id|uuid notnull=true default=- identity= generated=
+column|retailos.counters.branch_id|uuid notnull=true default=- identity= generated=
+column|retailos.counters.code|text notnull=true default=- identity= generated=
+column|retailos.counters.created_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.counters.id|uuid notnull=true default=f3b72bb359a50b640590970a2ab8e514 identity= generated=
+column|retailos.counters.name|text notnull=true default=- identity= generated=
+column|retailos.counters.status|text notnull=true default=1ef27142415a17e0aa700023e4db2a0d identity= generated=
+column|retailos.counters.tenant_id|uuid notnull=true default=- identity= generated=
+column|retailos.document_sequences.branch_id|uuid notnull=true default=- identity= generated=
+column|retailos.document_sequences.document_type|text notnull=true default=- identity= generated=
+column|retailos.document_sequences.financial_year|text notnull=true default=86e751880b3791dd7c2efae188915799 identity= generated=
+column|retailos.document_sequences.next_number|bigint notnull=true default=c4ca4238a0b923820dcc509a6f75849b identity= generated=
+column|retailos.document_sequences.tenant_id|uuid notnull=true default=- identity= generated=
+column|retailos.idempotency_keys.actor_user_id|uuid notnull=true default=- identity= generated=
+column|retailos.idempotency_keys.completed_at|timestamp with time zone notnull=false default=- identity= generated=
+column|retailos.idempotency_keys.created_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.idempotency_keys.key|uuid notnull=true default=- identity= generated=
+column|retailos.idempotency_keys.request_hash|text notnull=true default=- identity= generated=
+column|retailos.idempotency_keys.response|jsonb notnull=false default=- identity= generated=
+column|retailos.idempotency_keys.scope|text notnull=true default=- identity= generated=
+column|retailos.idempotency_keys.status|text notnull=true default=ca873baa1a2b49399e9c4dde6290ba84 identity= generated=
+column|retailos.idempotency_keys.tenant_id|uuid notnull=true default=- identity= generated=
+column|retailos.inventory_balances.branch_id|uuid notnull=true default=- identity= generated=
+column|retailos.inventory_balances.on_hand|integer notnull=true default=cfcd208495d565ef66e7dff9f98764da identity= generated=
+column|retailos.inventory_balances.tenant_id|uuid notnull=true default=- identity= generated=
+column|retailos.inventory_balances.updated_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.inventory_balances.variant_id|uuid notnull=true default=- identity= generated=
+column|retailos.inventory_movements.balance_after|integer notnull=false default=- identity= generated=
+column|retailos.inventory_movements.branch_id|uuid notnull=true default=- identity= generated=
+column|retailos.inventory_movements.business_date|date notnull=true default=- identity= generated=
+column|retailos.inventory_movements.created_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.inventory_movements.created_by|uuid notnull=false default=ddeb331049bfce569b78a580d1e1abe4 identity= generated=
+column|retailos.inventory_movements.id|bigint notnull=true default=- identity=a generated=
+column|retailos.inventory_movements.item_type|text notnull=true default=- identity= generated=
+column|retailos.inventory_movements.jewellery_item_id|uuid notnull=false default=- identity= generated=
+column|retailos.inventory_movements.movement_type|text notnull=true default=- identity= generated=
+column|retailos.inventory_movements.note|text notnull=false default=- identity= generated=
+column|retailos.inventory_movements.quantity_delta|integer notnull=true default=- identity= generated=
+column|retailos.inventory_movements.reason_code|text notnull=false default=- identity= generated=
+column|retailos.inventory_movements.reference_id|uuid notnull=false default=- identity= generated=
+column|retailos.inventory_movements.reference_type|text notnull=false default=- identity= generated=
+column|retailos.inventory_movements.tenant_id|uuid notnull=true default=- identity= generated=
+column|retailos.inventory_movements.variant_id|uuid notnull=false default=- identity= generated=
+column|retailos.invoice_items.branch_id|uuid notnull=true default=- identity= generated=
+column|retailos.invoice_items.cgst_amount|numeric(14,2) notnull=true default=cfcd208495d565ef66e7dff9f98764da identity= generated=
+column|retailos.invoice_items.code_snapshot|text notnull=true default=- identity= generated=
+column|retailos.invoice_items.description|text notnull=true default=- identity= generated=
+column|retailos.invoice_items.discount_amount|numeric(14,2) notnull=true default=cfcd208495d565ef66e7dff9f98764da identity= generated=
+column|retailos.invoice_items.discount_reason|text notnull=false default=- identity= generated=
+column|retailos.invoice_items.gross_amount|numeric(14,2) notnull=true default=- identity= generated=
+column|retailos.invoice_items.gst_rate_pct|numeric(7,4) notnull=false default=- identity= generated=
+column|retailos.invoice_items.hsn_code|text notnull=false default=- identity= generated=
+column|retailos.invoice_items.id|uuid notnull=true default=f3b72bb359a50b640590970a2ab8e514 identity= generated=
+column|retailos.invoice_items.igst_amount|numeric(14,2) notnull=true default=cfcd208495d565ef66e7dff9f98764da identity= generated=
+column|retailos.invoice_items.invoice_id|uuid notnull=true default=- identity= generated=
+column|retailos.invoice_items.item_type|text notnull=true default=- identity= generated=
+column|retailos.invoice_items.jewellery_item_id|uuid notnull=false default=- identity= generated=
+column|retailos.invoice_items.line_no|integer notnull=true default=- identity= generated=
+column|retailos.invoice_items.line_status|text notnull=true default=8d1b048428396aa81599e937f94dcc53 identity= generated=
+column|retailos.invoice_items.line_total|numeric(14,2) notnull=true default=- identity= generated=
+column|retailos.invoice_items.price_includes_tax|boolean notnull=false default=- identity= generated=
+column|retailos.invoice_items.pricing_mode|text notnull=true default=- identity= generated=
+column|retailos.invoice_items.product_kind|text notnull=true default=- identity= generated=
+column|retailos.invoice_items.quantity|integer notnull=true default=- identity= generated=
+column|retailos.invoice_items.sgst_amount|numeric(14,2) notnull=true default=cfcd208495d565ef66e7dff9f98764da identity= generated=
+column|retailos.invoice_items.tax_class_id|uuid notnull=false default=- identity= generated=
+column|retailos.invoice_items.taxable_value|numeric(14,2) notnull=true default=- identity= generated=
+column|retailos.invoice_items.tenant_id|uuid notnull=true default=- identity= generated=
+column|retailos.invoice_items.unit_price|numeric(14,2) notnull=true default=- identity= generated=
+column|retailos.invoice_items.variant_id|uuid notnull=false default=- identity= generated=
+column|retailos.invoices.branch_id|uuid notnull=true default=- identity= generated=
+column|retailos.invoices.business_date|date notnull=true default=- identity= generated=
+column|retailos.invoices.cash_session_id|uuid notnull=true default=- identity= generated=
+column|retailos.invoices.cashier_user_id|uuid notnull=true default=- identity= generated=
+column|retailos.invoices.cgst_total|numeric(14,2) notnull=true default=cfcd208495d565ef66e7dff9f98764da identity= generated=
+column|retailos.invoices.change_total|numeric(14,2) notnull=true default=cfcd208495d565ef66e7dff9f98764da identity= generated=
+column|retailos.invoices.counter_id|uuid notnull=true default=- identity= generated=
+column|retailos.invoices.created_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.invoices.customer_name|text notnull=false default=- identity= generated=
+column|retailos.invoices.customer_phone|text notnull=false default=- identity= generated=
+column|retailos.invoices.discount_total|numeric(14,2) notnull=true default=cfcd208495d565ef66e7dff9f98764da identity= generated=
+column|retailos.invoices.financial_year|text notnull=true default=- identity= generated=
+column|retailos.invoices.grand_total|numeric(14,2) notnull=true default=- identity= generated=
+column|retailos.invoices.gross_total|numeric(14,2) notnull=true default=- identity= generated=
+column|retailos.invoices.idempotency_key|uuid notnull=true default=- identity= generated=
+column|retailos.invoices.id|uuid notnull=true default=f3b72bb359a50b640590970a2ab8e514 identity= generated=
+column|retailos.invoices.igst_total|numeric(14,2) notnull=true default=cfcd208495d565ef66e7dff9f98764da identity= generated=
+column|retailos.invoices.invoice_number|text notnull=true default=- identity= generated=
+column|retailos.invoices.is_inter_state|boolean notnull=true default=68934a3e9455fa72420237eb05902327 identity= generated=
+column|retailos.invoices.issued_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.invoices.paid_total|numeric(14,2) notnull=true default=- identity= generated=
+column|retailos.invoices.place_of_supply_state_code|character(2) notnull=true default=- identity= generated=
+column|retailos.invoices.round_off|numeric(14,2) notnull=true default=cfcd208495d565ef66e7dff9f98764da identity= generated=
+column|retailos.invoices.sgst_total|numeric(14,2) notnull=true default=cfcd208495d565ef66e7dff9f98764da identity= generated=
+column|retailos.invoices.status|text notnull=true default=dabecb097972f86a138a43810b250054 identity= generated=
+column|retailos.invoices.tax_configured|boolean notnull=true default=- identity= generated=
+column|retailos.invoices.tax_total|numeric(14,2) notnull=true default=cfcd208495d565ef66e7dff9f98764da identity= generated=
+column|retailos.invoices.taxable_total|numeric(14,2) notnull=true default=- identity= generated=
+column|retailos.invoices.tenant_id|uuid notnull=true default=- identity= generated=
+column|retailos.invoices.void_reason|text notnull=false default=- identity= generated=
+column|retailos.invoices.voided_at|timestamp with time zone notnull=false default=- identity= generated=
+column|retailos.invoices.voided_by|uuid notnull=false default=- identity= generated=
+column|retailos.jewellery_designs.category_id|uuid notnull=true default=- identity= generated=
+column|retailos.jewellery_designs.created_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.jewellery_designs.design_code|text notnull=true default=- identity= generated=
+column|retailos.jewellery_designs.hsn_code|text notnull=false default=- identity= generated=
+column|retailos.jewellery_designs.id|uuid notnull=true default=f3b72bb359a50b640590970a2ab8e514 identity= generated=
+column|retailos.jewellery_designs.is_active|boolean notnull=true default=b326b5062b2f0e69046810717534cb09 identity= generated=
+column|retailos.jewellery_designs.kind|text notnull=true default=- identity= generated=
+column|retailos.jewellery_designs.name|text notnull=true default=- identity= generated=
+column|retailos.jewellery_designs.tax_class_id|uuid notnull=false default=- identity= generated=
+column|retailos.jewellery_designs.tenant_id|uuid notnull=true default=- identity= generated=
+column|retailos.jewellery_item_costs.cost_price|numeric(14,2) notnull=true default=- identity= generated=
+column|retailos.jewellery_item_costs.item_id|uuid notnull=true default=- identity= generated=
+column|retailos.jewellery_item_costs.tenant_id|uuid notnull=true default=- identity= generated=
+column|retailos.jewellery_item_costs.updated_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.jewellery_items.branch_id|uuid notnull=true default=- identity= generated=
+column|retailos.jewellery_items.created_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.jewellery_items.design_id|uuid notnull=true default=- identity= generated=
+column|retailos.jewellery_items.gross_weight_g|numeric(12,3) notnull=false default=- identity= generated=
+column|retailos.jewellery_items.hallmark_huid|text notnull=false default=- identity= generated=
+column|retailos.jewellery_items.id|uuid notnull=true default=f3b72bb359a50b640590970a2ab8e514 identity= generated=
+column|retailos.jewellery_items.is_active|boolean notnull=true default=b326b5062b2f0e69046810717534cb09 identity= generated=
+column|retailos.jewellery_items.kind|text notnull=true default=- identity= generated=
+column|retailos.jewellery_items.metal_type|text notnull=false default=- identity= generated=
+column|retailos.jewellery_items.net_weight_g|numeric(12,3) notnull=false default=- identity= generated=
+column|retailos.jewellery_items.pricing_mode|text notnull=true default=c042ec82613391e7a328137108ce73f9 identity= generated=
+column|retailos.jewellery_items.purity|text notnull=false default=- identity= generated=
+column|retailos.jewellery_items.sold_invoice_item_id|uuid notnull=false default=- identity= generated=
+column|retailos.jewellery_items.status|text notnull=true default=3740168336c05e1b259fe1b3c65dc417 identity= generated=
+column|retailos.jewellery_items.tag_code|text notnull=true default=- identity= generated=
+column|retailos.jewellery_items.tag_price|numeric(14,2) notnull=false default=- identity= generated=
+column|retailos.jewellery_items.tenant_id|uuid notnull=true default=- identity= generated=
+column|retailos.jewellery_items.updated_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.jewellery_items.version|integer notnull=true default=c4ca4238a0b923820dcc509a6f75849b identity= generated=
+column|retailos.metal_rates.created_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.metal_rates.created_by|uuid notnull=true default=- identity= generated=
+column|retailos.metal_rates.effective_from|timestamp with time zone notnull=true default=- identity= generated=
+column|retailos.metal_rates.entered_rate|numeric(14,4) notnull=true default=- identity= generated=
+column|retailos.metal_rates.entered_unit|text notnull=true default=- identity= generated=
+column|retailos.metal_rates.id|uuid notnull=true default=f3b72bb359a50b640590970a2ab8e514 identity= generated=
+column|retailos.metal_rates.metal_type|text notnull=true default=- identity= generated=
+column|retailos.metal_rates.purity|text notnull=true default=- identity= generated=
+column|retailos.metal_rates.rate_per_gram|numeric(14,4) notnull=true default=- identity= generated=
+column|retailos.metal_rates.source|text notnull=true default=86e751880b3791dd7c2efae188915799 identity= generated=
+column|retailos.metal_rates.tenant_id|uuid notnull=true default=- identity= generated=
+column|retailos.payments.amount|numeric(14,2) notnull=true default=- identity= generated=
+column|retailos.payments.branch_id|uuid notnull=true default=- identity= generated=
+column|retailos.payments.cash_session_id|uuid notnull=true default=- identity= generated=
+column|retailos.payments.change_amount|numeric(14,2) notnull=false default=- identity= generated=
+column|retailos.payments.direction|text notnull=true default=25dadf9c5ba0d5465cbff929634247e6 identity= generated=
+column|retailos.payments.id|uuid notnull=true default=f3b72bb359a50b640590970a2ab8e514 identity= generated=
+column|retailos.payments.invoice_id|uuid notnull=true default=- identity= generated=
+column|retailos.payments.method|text notnull=true default=- identity= generated=
+column|retailos.payments.purpose|text notnull=true default=adf1d2b5506e39199bd8a9a06434fd9e identity= generated=
+column|retailos.payments.recorded_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.payments.recorded_by|uuid notnull=true default=ddeb331049bfce569b78a580d1e1abe4 identity= generated=
+column|retailos.payments.reference_no|text notnull=false default=- identity= generated=
+column|retailos.payments.reverses_payment_id|uuid notnull=false default=- identity= generated=
+column|retailos.payments.tenant_id|uuid notnull=true default=- identity= generated=
+column|retailos.payments.tendered_amount|numeric(14,2) notnull=false default=- identity= generated=
+column|retailos.permission_overrides.branch_id|uuid notnull=false default=- identity= generated=
+column|retailos.permission_overrides.created_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.permission_overrides.effect|text notnull=true default=- identity= generated=
+column|retailos.permission_overrides.expires_at|timestamp with time zone notnull=false default=- identity= generated=
+column|retailos.permission_overrides.granted_by|uuid notnull=true default=- identity= generated=
+column|retailos.permission_overrides.id|uuid notnull=true default=f3b72bb359a50b640590970a2ab8e514 identity= generated=
+column|retailos.permission_overrides.permission_key|text notnull=true default=- identity= generated=
+column|retailos.permission_overrides.reason|text notnull=true default=- identity= generated=
+column|retailos.permission_overrides.tenant_id|uuid notnull=true default=- identity= generated=
+column|retailos.permission_overrides.user_id|uuid notnull=true default=- identity= generated=
+column|retailos.permissions.delegable|boolean notnull=true default=b326b5062b2f0e69046810717534cb09 identity= generated=
+column|retailos.permissions.description|text notnull=true default=- identity= generated=
+column|retailos.permissions.is_sensitive|boolean notnull=true default=68934a3e9455fa72420237eb05902327 identity= generated=
+column|retailos.permissions.key|text notnull=true default=- identity= generated=
+column|retailos.permissions.scope|text notnull=true default=- identity= generated=
+column|retailos.platform_admins.granted_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.platform_admins.revoked_at|timestamp with time zone notnull=false default=- identity= generated=
+column|retailos.platform_admins.user_id|uuid notnull=true default=- identity= generated=
+column|retailos.product_variants.colour_label|text notnull=true default=1f6475bdaa816e6e1b3cf15dc967bbed identity= generated=
+column|retailos.product_variants.created_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.product_variants.id|uuid notnull=true default=f3b72bb359a50b640590970a2ab8e514 identity= generated=
+column|retailos.product_variants.is_active|boolean notnull=true default=b326b5062b2f0e69046810717534cb09 identity= generated=
+column|retailos.product_variants.mrp|numeric(14,2) notnull=false default=- identity= generated=
+column|retailos.product_variants.price_updated_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.product_variants.product_id|uuid notnull=true default=- identity= generated=
+column|retailos.product_variants.reorder_level|integer notnull=false default=- identity= generated=
+column|retailos.product_variants.selling_price|numeric(14,2) notnull=true default=- identity= generated=
+column|retailos.product_variants.size_label|text notnull=true default=61c0adf60cfcf1fbbd427adcf69218b5 identity= generated=
+column|retailos.product_variants.sku|text notnull=true default=- identity= generated=
+column|retailos.product_variants.tax_class_id|uuid notnull=false default=- identity= generated=
+column|retailos.product_variants.tenant_id|uuid notnull=true default=- identity= generated=
+column|retailos.product_variants.updated_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.products.brand_id|uuid notnull=false default=- identity= generated=
+column|retailos.products.category_id|uuid notnull=true default=- identity= generated=
+column|retailos.products.created_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.products.hsn_code|text notnull=false default=- identity= generated=
+column|retailos.products.id|uuid notnull=true default=f3b72bb359a50b640590970a2ab8e514 identity= generated=
+column|retailos.products.is_active|boolean notnull=true default=b326b5062b2f0e69046810717534cb09 identity= generated=
+column|retailos.products.name|text notnull=true default=- identity= generated=
+column|retailos.products.style_code|text notnull=true default=- identity= generated=
+column|retailos.products.tax_class_id|uuid notnull=false default=- identity= generated=
+column|retailos.products.tenant_id|uuid notnull=true default=- identity= generated=
+column|retailos.products.updated_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.profiles.created_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.profiles.full_name|text notnull=true default=86e751880b3791dd7c2efae188915799 identity= generated=
+column|retailos.profiles.id|uuid notnull=true default=- identity= generated=
+column|retailos.profiles.phone|text notnull=false default=- identity= generated=
+column|retailos.profiles.status|text notnull=true default=1ef27142415a17e0aa700023e4db2a0d identity= generated=
+column|retailos.profiles.updated_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.role_discount_limits.max_line_discount_bps|integer notnull=true default=- identity= generated=
+column|retailos.role_discount_limits.role_id|uuid notnull=true default=- identity= generated=
+column|retailos.role_discount_limits.tenant_id|uuid notnull=true default=- identity= generated=
+column|retailos.role_permissions.permission_key|text notnull=true default=- identity= generated=
+column|retailos.role_permissions.role_id|uuid notnull=true default=- identity= generated=
+column|retailos.roles.id|uuid notnull=true default=f3b72bb359a50b640590970a2ab8e514 identity= generated=
+column|retailos.roles.is_system|boolean notnull=true default=b326b5062b2f0e69046810717534cb09 identity= generated=
+column|retailos.roles.key|text notnull=true default=- identity= generated=
+column|retailos.roles.name|text notnull=true default=- identity= generated=
+column|retailos.roles.scope|text notnull=true default=- identity= generated=
+column|retailos.roles.tenant_id|uuid notnull=false default=- identity= generated=
+column|retailos.schema_info.app|text notnull=true default=- identity= generated=
+column|retailos.schema_info.created_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.schema_info.created_by|text notnull=true default=6336bf6d36554be2514bd82155e360d6 identity= generated=
+column|retailos.schema_info.migration_set|text notnull=true default=- identity= generated=
+column|retailos.schema_info.schema_version|integer notnull=true default=- identity= generated=
+column|retailos.tax_classes.code|text notnull=true default=- identity= generated=
+column|retailos.tax_classes.created_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.tax_classes.id|uuid notnull=true default=f3b72bb359a50b640590970a2ab8e514 identity= generated=
+column|retailos.tax_classes.is_active|boolean notnull=true default=b326b5062b2f0e69046810717534cb09 identity= generated=
+column|retailos.tax_classes.name|text notnull=true default=- identity= generated=
+column|retailos.tax_classes.tenant_id|uuid notnull=true default=- identity= generated=
+column|retailos.tax_rates.created_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.tax_rates.created_by|uuid notnull=false default=ddeb331049bfce569b78a580d1e1abe4 identity= generated=
+column|retailos.tax_rates.effective_from|date notnull=true default=- identity= generated=
+column|retailos.tax_rates.effective_to|date notnull=false default=- identity= generated=
+column|retailos.tax_rates.gst_rate_pct|numeric(7,4) notnull=true default=- identity= generated=
+column|retailos.tax_rates.id|uuid notnull=true default=f3b72bb359a50b640590970a2ab8e514 identity= generated=
+column|retailos.tax_rates.tax_class_id|uuid notnull=true default=- identity= generated=
+column|retailos.tax_rates.tenant_id|uuid notnull=true default=- identity= generated=
+column|retailos.tenant_memberships.created_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.tenant_memberships.id|uuid notnull=true default=f3b72bb359a50b640590970a2ab8e514 identity= generated=
+column|retailos.tenant_memberships.invited_by|uuid notnull=false default=- identity= generated=
+column|retailos.tenant_memberships.role_id|uuid notnull=true default=- identity= generated=
+column|retailos.tenant_memberships.role_scope|text notnull=false default=ee9f4519b7435a2d0d22a0ab7d57ad27 identity= generated=s
+column|retailos.tenant_memberships.status|text notnull=true default=1ef27142415a17e0aa700023e4db2a0d identity= generated=
+column|retailos.tenant_memberships.tenant_id|uuid notnull=true default=- identity= generated=
+column|retailos.tenant_memberships.updated_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.tenant_memberships.user_id|uuid notnull=true default=- identity= generated=
+column|retailos.tenant_sequences.name|text notnull=true default=- identity= generated=
+column|retailos.tenant_sequences.next_number|bigint notnull=true default=c4ca4238a0b923820dcc509a6f75849b identity= generated=
+column|retailos.tenant_sequences.tenant_id|uuid notnull=true default=- identity= generated=
+column|retailos.tenant_settings.allow_negative_stock|boolean notnull=true default=68934a3e9455fa72420237eb05902327 identity= generated=
+column|retailos.tenant_settings.financial_year_start_month|smallint notnull=true default=a87ff679a2f3e71d9181a67b7542122c identity= generated=
+column|retailos.tenant_settings.prices_include_tax_clothing|boolean notnull=false default=- identity= generated=
+column|retailos.tenant_settings.prices_include_tax_jewellery|boolean notnull=false default=- identity= generated=
+column|retailos.tenant_settings.tax_enforced|boolean notnull=true default=b326b5062b2f0e69046810717534cb09 identity= generated=
+column|retailos.tenant_settings.tenant_id|uuid notnull=true default=- identity= generated=
+column|retailos.tenant_settings.updated_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.tenants.code|text notnull=true default=- identity= generated=
+column|retailos.tenants.created_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.tenants.gstin|text notnull=false default=- identity= generated=
+column|retailos.tenants.id|uuid notnull=true default=f3b72bb359a50b640590970a2ab8e514 identity= generated=
+column|retailos.tenants.legal_name|text notnull=true default=- identity= generated=
+column|retailos.tenants.state_code|character(2) notnull=false default=- identity= generated=
+column|retailos.tenants.status|text notnull=true default=1ef27142415a17e0aa700023e4db2a0d identity= generated=
+column|retailos.tenants.trade_name|text notnull=true default=- identity= generated=
+column|retailos.tenants.updated_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.variant_costs.cost_price|numeric(14,2) notnull=true default=- identity= generated=
+column|retailos.variant_costs.tenant_id|uuid notnull=true default=- identity= generated=
+column|retailos.variant_costs.updated_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
+column|retailos.variant_costs.variant_id|uuid notnull=true default=- identity= generated=
+constraint|retailos.audit_logs.audit_logs_actor_type_check|c 1e1ca12ae33cd8882b29405db66b8a23
+constraint|retailos.audit_logs.audit_logs_pkey|p 4c6419b3704337bbfe50f018842a9ad3
+constraint|retailos.barcode_aliases.barcode_aliases_check1|c cba361ea3d3632c04956e5d4f6ddc4a1
+constraint|retailos.barcode_aliases.barcode_aliases_check|c fa482f8fea69d452da89ca29afe40417
+constraint|retailos.barcode_aliases.barcode_aliases_code_check|c 755976880e0564124ef0ef697bd0cc88
+constraint|retailos.barcode_aliases.barcode_aliases_pkey|p 4c6419b3704337bbfe50f018842a9ad3
+constraint|retailos.barcode_aliases.barcode_aliases_source_check|c 9010e350abf46f410f1b9d8d5d20ea82
+constraint|retailos.barcode_aliases.barcode_aliases_symbology_check|c 65b4743c0cc304b43378e49320bdfdab
+constraint|retailos.barcode_aliases.barcode_aliases_target_type_check|c 14ba854b0456b40e117440098eb5a796
+constraint|retailos.barcode_aliases.barcode_aliases_tenant_id_code_key|u c2117c33386420017144d531db1f7a9e
+constraint|retailos.barcode_aliases.barcode_aliases_tenant_id_jewellery_item_id_fkey|f c084d5477c54e26165afd829626b3bcf
+constraint|retailos.barcode_aliases.barcode_aliases_tenant_id_variant_id_fkey|f 186255e3ba133141bcdccdeefc2dc5be
+constraint|retailos.branch_memberships.branch_memberships_branch_id_user_id_key|u fd4301736ecd7f238f458c7356f2c56e
+constraint|retailos.branch_memberships.branch_memberships_pkey|p 4c6419b3704337bbfe50f018842a9ad3
+constraint|retailos.branch_memberships.branch_memberships_role_id_role_scope_fkey|f db7df29603087a77a08924fc7a54b5af
+constraint|retailos.branch_memberships.branch_memberships_status_check|c 26dda503bf50fb50d1bb195f7557d68d
+constraint|retailos.branch_memberships.branch_memberships_tenant_id_branch_id_fkey|f 22811387a1968e5608ef69697eb11160
+constraint|retailos.branch_memberships.branch_memberships_tenant_id_user_id_fkey|f c9f28c1c8b4211494be0aa230cc55c36
+constraint|retailos.branches.branches_code_check|c 5c052d41dee47b279c5bc80d393e2a6a
+constraint|retailos.branches.branches_gstin_check|c f1f7b14c72986eb5192226d9e5fb01e5
+constraint|retailos.branches.branches_invoice_prefix_check|c 5d66c868fbc8cc5e325205c853db0acc
+constraint|retailos.branches.branches_name_check|c bb3014415b3823fff7e9c7e62b14b199
+constraint|retailos.branches.branches_pkey|p 4c6419b3704337bbfe50f018842a9ad3
+constraint|retailos.branches.branches_status_check|c 9678eb5341f900b6e3be1f3421c2c590
+constraint|retailos.branches.branches_tenant_id_code_key|u c2117c33386420017144d531db1f7a9e
+constraint|retailos.branches.branches_tenant_id_fkey|f 82802272dd88c3d8322b32282c42630a
+constraint|retailos.branches.branches_tenant_id_id_key|u 51ee2716dc1abea90609c31b3f3c041c
+constraint|retailos.brands.brands_name_check|c bb3014415b3823fff7e9c7e62b14b199
+constraint|retailos.brands.brands_pkey|p 4c6419b3704337bbfe50f018842a9ad3
+constraint|retailos.brands.brands_tenant_id_fkey|f 82802272dd88c3d8322b32282c42630a
+constraint|retailos.brands.brands_tenant_id_id_key|u 51ee2716dc1abea90609c31b3f3c041c
+constraint|retailos.cash_sessions.cash_sessions_opening_float_check|c a5b096a6ccb4860d52d059e66c5d8ab2
+constraint|retailos.cash_sessions.cash_sessions_pkey|p 4c6419b3704337bbfe50f018842a9ad3
+constraint|retailos.cash_sessions.cash_sessions_status_check|c efbf308f0d821ab9cb85c1c0119b48de
+constraint|retailos.cash_sessions.cash_sessions_tenant_id_branch_id_counter_id_fkey|f 9f343d57717de3c8f96443346f371754
+constraint|retailos.cash_sessions.cash_sessions_tenant_id_branch_id_fkey|f 22811387a1968e5608ef69697eb11160
+constraint|retailos.cash_sessions.cash_sessions_tenant_id_branch_id_id_key|u 5ecce885345b7c25b4a657118ea844d1
+constraint|retailos.cash_sessions.cash_sessions_tenant_id_id_key|u 51ee2716dc1abea90609c31b3f3c041c
+constraint|retailos.categories.categories_hsn_code_check|c 424bdf9fca01bec38becf2463b1e9b93
+constraint|retailos.categories.categories_name_check|c bb3014415b3823fff7e9c7e62b14b199
+constraint|retailos.categories.categories_pkey|p 4c6419b3704337bbfe50f018842a9ad3
+constraint|retailos.categories.categories_product_kind_check|c 027f0c80406141f79843b60b9f94a941
+constraint|retailos.categories.categories_tenant_id_fkey|f 82802272dd88c3d8322b32282c42630a
+constraint|retailos.categories.categories_tenant_id_id_key|u 51ee2716dc1abea90609c31b3f3c041c
+constraint|retailos.categories.categories_tenant_id_tax_class_id_fkey|f 3c4d1ad2f0ab8e6bcbe6fa56ae1fc80b
+constraint|retailos.counters.counters_branch_id_code_key|u d47c48848d23cb7e5497d4e9653ab823
+constraint|retailos.counters.counters_code_check|c 28ab79ab6a37d8179900213a5748ce92
+constraint|retailos.counters.counters_pkey|p 4c6419b3704337bbfe50f018842a9ad3
+constraint|retailos.counters.counters_status_check|c 9678eb5341f900b6e3be1f3421c2c590
+constraint|retailos.counters.counters_tenant_branch_id_key|u 5ecce885345b7c25b4a657118ea844d1
+constraint|retailos.counters.counters_tenant_id_branch_id_fkey|f 22811387a1968e5608ef69697eb11160
+constraint|retailos.counters.counters_tenant_id_id_key|u 51ee2716dc1abea90609c31b3f3c041c
+constraint|retailos.document_sequences.document_sequences_document_type_check|c b868d063c71bdd16e1bad9dc19bcadf0
+constraint|retailos.document_sequences.document_sequences_next_number_check|c 95685689d2cf8a7680c346171220a5f5
+constraint|retailos.document_sequences.document_sequences_pkey|p 25cdcb2cb71eeec516c7b69bb679bb88
+constraint|retailos.document_sequences.document_sequences_tenant_id_branch_id_fkey|f 22811387a1968e5608ef69697eb11160
+constraint|retailos.idempotency_keys.idempotency_keys_pkey|p ab6d9ae2dc363dcb8bfb1de8260412b8
+constraint|retailos.idempotency_keys.idempotency_keys_status_check|c 835a9f4d3049fef3e2e4ae012f018eaf
+constraint|retailos.idempotency_keys.idempotency_keys_tenant_id_fkey|f 82802272dd88c3d8322b32282c42630a
+constraint|retailos.inventory_balances.inventory_balances_on_hand_check|c 0ecbedd3051761ee292529ba53bed464
+constraint|retailos.inventory_balances.inventory_balances_pkey|p b0cbca233b0d3f2a9391df2449cc7cec
+constraint|retailos.inventory_balances.inventory_balances_tenant_id_branch_id_fkey|f 22811387a1968e5608ef69697eb11160
+constraint|retailos.inventory_balances.inventory_balances_tenant_id_variant_id_fkey|f 186255e3ba133141bcdccdeefc2dc5be
+constraint|retailos.inventory_movements.inventory_movements_balance_after_check|c 5a3831fdfe52f9178488c1f145465346
+constraint|retailos.inventory_movements.inventory_movements_check1|c 44eb8abedafa69bc39a76ee70a07f0db
+constraint|retailos.inventory_movements.inventory_movements_check2|c fe7bd2ee7a6d205321f560cc97512c93
+constraint|retailos.inventory_movements.inventory_movements_check|c fa482f8fea69d452da89ca29afe40417
+constraint|retailos.inventory_movements.inventory_movements_item_type_check|c 42cedde90025847470ec30124d5d99cf
+constraint|retailos.inventory_movements.inventory_movements_movement_type_check|c 18494ffaf618c5a74a009995722f7ac2
+constraint|retailos.inventory_movements.inventory_movements_pkey|p 4c6419b3704337bbfe50f018842a9ad3
+constraint|retailos.inventory_movements.inventory_movements_quantity_delta_check|c a045f6970adb90eae8aabf92b7ebb8a3
+constraint|retailos.inventory_movements.inventory_movements_tenant_id_branch_id_fkey|f 22811387a1968e5608ef69697eb11160
+constraint|retailos.inventory_movements.inventory_movements_tenant_id_jewellery_item_id_fkey|f c084d5477c54e26165afd829626b3bcf
+constraint|retailos.inventory_movements.inventory_movements_tenant_id_variant_id_fkey|f 186255e3ba133141bcdccdeefc2dc5be
+constraint|retailos.invoice_items.invoice_items_cgst_amount_check|c 5093f7668b16004f69a64f59655cb7e9
+constraint|retailos.invoice_items.invoice_items_check1|c 44eb8abedafa69bc39a76ee70a07f0db
+constraint|retailos.invoice_items.invoice_items_check2|c 49bb6a94289db9a2a4fdb78d356a00c6
+constraint|retailos.invoice_items.invoice_items_check3|c 8957440a49489d8426a46d5128287cf9
+constraint|retailos.invoice_items.invoice_items_check4|c d2d9395444e176283ce1a49469a16197
+constraint|retailos.invoice_items.invoice_items_check5|c c2d84e9b5a7b047b5e8cb64289753403
+constraint|retailos.invoice_items.invoice_items_check|c fa482f8fea69d452da89ca29afe40417
+constraint|retailos.invoice_items.invoice_items_discount_amount_check|c 8fcd301bb770cedadcc1e1bab27e816c
+constraint|retailos.invoice_items.invoice_items_gross_amount_check|c 51346b0553b1dbd848a1c5dd6b6d114d
+constraint|retailos.invoice_items.invoice_items_igst_amount_check|c 46cb9abe52a821ad5470360828540ff7
+constraint|retailos.invoice_items.invoice_items_invoice_id_line_no_key|u 234591786ec0949115c8d8af8437ae3a
+constraint|retailos.invoice_items.invoice_items_item_type_check|c 42cedde90025847470ec30124d5d99cf
+constraint|retailos.invoice_items.invoice_items_line_no_check|c 3ad2b589dfac1ea72d1ebe6efc1a51b0
+constraint|retailos.invoice_items.invoice_items_line_status_check|c c6a4cd3bdd08b1a64a12337de0d2a129
+constraint|retailos.invoice_items.invoice_items_line_total_check|c 77a668677185187838f5ecf931c67c85
+constraint|retailos.invoice_items.invoice_items_pkey|p 4c6419b3704337bbfe50f018842a9ad3
+constraint|retailos.invoice_items.invoice_items_pricing_mode_check|c 261ace60b53d0351ae09a6bb691ed536
+constraint|retailos.invoice_items.invoice_items_product_kind_check|c 027f0c80406141f79843b60b9f94a941
+constraint|retailos.invoice_items.invoice_items_quantity_check|c 6e18cfab297f8a309e841ecbe93bae18
+constraint|retailos.invoice_items.invoice_items_sgst_amount_check|c fd1425e92d30b5e8e6d0412d46fabc49
+constraint|retailos.invoice_items.invoice_items_taxable_value_check|c 6d1876239fd8b2e403068f6baeb86212
+constraint|retailos.invoice_items.invoice_items_tenant_id_id_key|u 51ee2716dc1abea90609c31b3f3c041c
+constraint|retailos.invoice_items.invoice_items_tenant_id_invoice_id_branch_id_fkey|f e4a552f5f832577a20261255d363ab83
+constraint|retailos.invoice_items.invoice_items_tenant_id_jewellery_item_id_fkey|f c084d5477c54e26165afd829626b3bcf
+constraint|retailos.invoice_items.invoice_items_tenant_id_tax_class_id_fkey|f 3c4d1ad2f0ab8e6bcbe6fa56ae1fc80b
+constraint|retailos.invoice_items.invoice_items_tenant_id_variant_id_fkey|f 186255e3ba133141bcdccdeefc2dc5be
+constraint|retailos.invoice_items.invoice_items_unit_price_check|c 9fcdebcae429ed6cd565943b99e9f202
+constraint|retailos.invoices.invoice_fully_paid|c 752d963caf18a792a96d4b78f06ba7f1
+constraint|retailos.invoices.invoice_tax_adds_up|c 2a1b101245684f7bc83d88b8def08a52
+constraint|retailos.invoices.invoice_total_adds_up|c cc8dd7d9a02ecb4e5e9e638d11620be2
+constraint|retailos.invoices.invoices_cgst_total_check|c f25defc37b8328fada673c3ba8d9eda5
+constraint|retailos.invoices.invoices_change_total_check|c 5979f64d171be88887d56ee0c40ec867
+constraint|retailos.invoices.invoices_customer_name_check|c 453bda82529d78058e9982d293d0366d
+constraint|retailos.invoices.invoices_customer_phone_check|c ebf4c3e04d1429aaed4c5eae8c10bac4
+constraint|retailos.invoices.invoices_discount_total_check|c 2afff0fa0b82fc62d5195365d79ffe15
+constraint|retailos.invoices.invoices_grand_total_check|c 724d66dd439a7313c01fa9f6c46eb5b8
+constraint|retailos.invoices.invoices_gross_total_check|c 472e9fae816f2c7c137c60b70cf6d592
+constraint|retailos.invoices.invoices_igst_total_check|c 09876431c8778a7a0db4a6127a15942d
+constraint|retailos.invoices.invoices_invoice_number_check|c 52e04e7819b33a1c37650571b9a34c35
+constraint|retailos.invoices.invoices_pkey|p 4c6419b3704337bbfe50f018842a9ad3
+constraint|retailos.invoices.invoices_reconcile|t aac6dc9e89c94dfced18fa2e02f5e5bc
+constraint|retailos.invoices.invoices_sgst_total_check|c de025299f275f09c20dcea1e85ef4bb0
+constraint|retailos.invoices.invoices_status_check|c ef589bc20befb576b4b70e214fc35f78
+constraint|retailos.invoices.invoices_tax_total_check|c 2b0d5f1f4cbf208d8f2185a63382a8bf
+constraint|retailos.invoices.invoices_taxable_total_check|c c569032e0ba4859cab4843cada059c18
+constraint|retailos.invoices.invoices_tenant_id_branch_id_cash_session_id_fkey|f 63724c50745c25085b605d0bd56a5a33
+constraint|retailos.invoices.invoices_tenant_id_branch_id_financial_year_invoice_number_key|u c8b3384a580653c409058799f480fca1
+constraint|retailos.invoices.invoices_tenant_id_id_branch_id_key|u dd815c16089c77e5debde53176096722
+constraint|retailos.invoices.invoices_tenant_id_id_key|u 51ee2716dc1abea90609c31b3f3c041c
+constraint|retailos.invoices.invoices_tenant_id_idempotency_key_key|u fb2d79b51f4913ba32f8153b6fe428c1
+constraint|retailos.invoices.voided_has_details|c 2003629d6653cadd299e439c14dea26e
+constraint|retailos.jewellery_designs.jewellery_designs_design_code_check|c c064530cb8f978554e1f5fd753856772
+constraint|retailos.jewellery_designs.jewellery_designs_hsn_code_check|c 424bdf9fca01bec38becf2463b1e9b93
+constraint|retailos.jewellery_designs.jewellery_designs_kind_check|c 0ef81c109e6b1d7b363b5e7c473db488
+constraint|retailos.jewellery_designs.jewellery_designs_name_check|c bb3014415b3823fff7e9c7e62b14b199
+constraint|retailos.jewellery_designs.jewellery_designs_pkey|p 4c6419b3704337bbfe50f018842a9ad3
+constraint|retailos.jewellery_designs.jewellery_designs_tenant_id_category_id_fkey|f bcdc91f85a7ff3448d55f247cbd43599
+constraint|retailos.jewellery_designs.jewellery_designs_tenant_id_design_code_key|u 79fa048acde12f615c3db24fd4015d91
+constraint|retailos.jewellery_designs.jewellery_designs_tenant_id_id_key|u 51ee2716dc1abea90609c31b3f3c041c
+constraint|retailos.jewellery_designs.jewellery_designs_tenant_id_id_kind_key|u 8e338456f6034b44cbf2a11e5b6d448c
+constraint|retailos.jewellery_designs.jewellery_designs_tenant_id_tax_class_id_fkey|f 3c4d1ad2f0ab8e6bcbe6fa56ae1fc80b
+constraint|retailos.jewellery_item_costs.jewellery_item_costs_cost_price_check|c b0ab86f244a2722af6c175deb009c2dd
+constraint|retailos.jewellery_item_costs.jewellery_item_costs_pkey|p 2bdf35d63e4ea94b6c4a8705996b807d
+constraint|retailos.jewellery_item_costs.jewellery_item_costs_tenant_id_item_id_fkey|f 1e021d08211052affbd355e9b4c2afe4
+constraint|retailos.jewellery_items.fixed_tag_needs_price|c c6c4583f71f225d551d240e1ef682120
+constraint|retailos.jewellery_items.imitation_is_fixed_tag|c b3f1fb6701751f4b7eb891aec60ed28b
+constraint|retailos.jewellery_items.jewellery_items_kind_check|c 0ef81c109e6b1d7b363b5e7c473db488
+constraint|retailos.jewellery_items.jewellery_items_pkey|p 4c6419b3704337bbfe50f018842a9ad3
+constraint|retailos.jewellery_items.jewellery_items_pricing_mode_check|c 56cbb6a76b397882ef34d78b46354bf2
+constraint|retailos.jewellery_items.jewellery_items_status_check|c dae7194ad806f0c64e64440861b852b0
+constraint|retailos.jewellery_items.jewellery_items_tag_code_check|c bfc7e4e0cff1bf0af46e5448ea90c161
+constraint|retailos.jewellery_items.jewellery_items_tag_price_check|c 026e31532c0fbf1250644489704b583d
+constraint|retailos.jewellery_items.jewellery_items_tenant_id_branch_id_fkey|f 22811387a1968e5608ef69697eb11160
+constraint|retailos.jewellery_items.jewellery_items_tenant_id_design_id_kind_fkey|f 22c54d0238dcd56cc32b70bdb89f817e
+constraint|retailos.jewellery_items.jewellery_items_tenant_id_id_key|u 51ee2716dc1abea90609c31b3f3c041c
+constraint|retailos.jewellery_items.jewellery_items_tenant_id_tag_code_key|u c41ab77b815ea0a92521760bf934a551
+constraint|retailos.jewellery_items.precious_needs_metal_and_weights|c 0d840e4843c81c133155905566da6e72
+constraint|retailos.metal_rates.metal_rates_entered_rate_check|c 44fb7090d07a45f0221152c8ecf36594
+constraint|retailos.metal_rates.metal_rates_entered_unit_check|c 8a1a72f1bc8e0e97bd70652301da24d2
+constraint|retailos.metal_rates.metal_rates_metal_type_check|c 1aeb2e1b3744408a0b7a39d13d465f72
+constraint|retailos.metal_rates.metal_rates_pkey|p 4c6419b3704337bbfe50f018842a9ad3
+constraint|retailos.metal_rates.metal_rates_purity_check|c 592242b6b6e7df11eab1e1f01b06da88
+constraint|retailos.metal_rates.metal_rates_rate_per_gram_check|c 3a97266d0f26840264f3914a071ef073
+constraint|retailos.metal_rates.metal_rates_source_check|c b29ab5f16bf1a3bf6c34b99989bdc1b7
+constraint|retailos.metal_rates.metal_rates_tenant_id_fkey|f 82802272dd88c3d8322b32282c42630a
+constraint|retailos.metal_rates.metal_rates_tenant_id_metal_type_purity_effective_from_key|u 7de3145ea3f8bda6dca82ed4474c2448
+constraint|retailos.payments.payments_amount_check|c ff7f8fc527686422d3a0e8676a5dee99
+constraint|retailos.payments.payments_check1|c 6b638c7ce6f42180cbe96a59d0d6cf98
+constraint|retailos.payments.payments_check2|c 25d5b14da4c20be791c06b40acc5096b
+constraint|retailos.payments.payments_check|c 3d08c7f987b1c3e4c91408f991a08e90
+constraint|retailos.payments.payments_direction_check|c fff9230bdb18cdd786dc6c9f01a5fe2e
+constraint|retailos.payments.payments_method_check|c 17dcbd0ef282243349c207196588b94c
+constraint|retailos.payments.payments_pkey|p 4c6419b3704337bbfe50f018842a9ad3
+constraint|retailos.payments.payments_purpose_check|c eefe50da5873707eddadd05c46fc3c6a
+constraint|retailos.payments.payments_reference_no_check|c 088b33276d69eeab24c553710e5dc880
+constraint|retailos.payments.payments_tenant_id_branch_id_cash_session_id_fkey|f 63724c50745c25085b605d0bd56a5a33
+constraint|retailos.payments.payments_tenant_id_invoice_id_branch_id_fkey|f e4a552f5f832577a20261255d363ab83
+constraint|retailos.permission_overrides.permission_overrides_check|c 0cc5c13b35e2fce0ed2cc68a0ac23f0d
+constraint|retailos.permission_overrides.permission_overrides_effect_check|c 04e9beaa72e6a86b555cfd919781baed
+constraint|retailos.permission_overrides.permission_overrides_permission_key_fkey|f e1f0ec64df5e1f4904948a188f1ec813
+constraint|retailos.permission_overrides.permission_overrides_pkey|p 4c6419b3704337bbfe50f018842a9ad3
+constraint|retailos.permission_overrides.permission_overrides_reason_check|c 37a7b9337e70f6fe23fdb87e59f9d782
+constraint|retailos.permission_overrides.permission_overrides_tenant_id_branch_id_fkey|f 5df397c5dffa51ce537e9577954969d5
+constraint|retailos.permission_overrides.permission_overrides_tenant_id_user_id_branch_id_permission_key|u a258db3aa26fc90c303bb161ed9046d9
+constraint|retailos.permission_overrides.permission_overrides_tenant_id_user_id_fkey|f e32e519bc053073c7e963f763b2f0d81
+constraint|retailos.permissions.permissions_pkey|p 729d3ed6c85722f863da384d2313331e
+constraint|retailos.permissions.permissions_scope_check|c 5f040557d395163c01f70408b9ced7ea
+constraint|retailos.platform_admins.platform_admins_pkey|p 0a0db78b5fb70bf8475b3bd434e6842b
+constraint|retailos.platform_admins.platform_admins_user_id_fkey|f 0cd2ad28c47ba5dfaf917515e6e72dab
+constraint|retailos.product_variants.product_variants_check|c 9af54a173f3587ba45aa9b8127845da1
+constraint|retailos.product_variants.product_variants_colour_label_check|c c56888d07514f97b7a34f99050469d59
+constraint|retailos.product_variants.product_variants_pkey|p 4c6419b3704337bbfe50f018842a9ad3
+constraint|retailos.product_variants.product_variants_product_id_size_label_colour_label_key|u f74b9170b82aa2c9972532cdc6a90078
+constraint|retailos.product_variants.product_variants_reorder_level_check|c 5660b0231567c749d17284af95555895
+constraint|retailos.product_variants.product_variants_selling_price_check|c 515e0a97a8cb1dc0a780ed6591856515
+constraint|retailos.product_variants.product_variants_size_label_check|c 17c6c8b46083da3db0be2855638dc573
+constraint|retailos.product_variants.product_variants_sku_check|c 8019b1c1eac2c745517e1e36d1949fb5
+constraint|retailos.product_variants.product_variants_tenant_id_id_key|u 51ee2716dc1abea90609c31b3f3c041c
+constraint|retailos.product_variants.product_variants_tenant_id_product_id_fkey|f 6695a5f407efdd4c4d940cafad9e99f0
+constraint|retailos.product_variants.product_variants_tenant_id_sku_key|u 43fd077c05b7b576ec32bbe8e272da8a
+constraint|retailos.product_variants.product_variants_tenant_id_tax_class_id_fkey|f 3c4d1ad2f0ab8e6bcbe6fa56ae1fc80b
+constraint|retailos.products.products_hsn_code_check|c 424bdf9fca01bec38becf2463b1e9b93
+constraint|retailos.products.products_name_check|c bb3014415b3823fff7e9c7e62b14b199
+constraint|retailos.products.products_pkey|p 4c6419b3704337bbfe50f018842a9ad3
+constraint|retailos.products.products_style_code_check|c 105196a8af619033bf21f9e4607a89df
+constraint|retailos.products.products_tenant_id_brand_id_fkey|f ce09dbc01128e310424d1e59aa850799
+constraint|retailos.products.products_tenant_id_category_id_fkey|f bcdc91f85a7ff3448d55f247cbd43599
+constraint|retailos.products.products_tenant_id_id_key|u 51ee2716dc1abea90609c31b3f3c041c
+constraint|retailos.products.products_tenant_id_style_code_key|u 1d0a1d760ba2eab301ec63fe2f2080fe
+constraint|retailos.products.products_tenant_id_tax_class_id_fkey|f 3c4d1ad2f0ab8e6bcbe6fa56ae1fc80b
+constraint|retailos.profiles.profiles_id_fkey|f fe7be858fb1125a1b27aa0d2890e4e98
+constraint|retailos.profiles.profiles_pkey|p 4c6419b3704337bbfe50f018842a9ad3
+constraint|retailos.profiles.profiles_status_check|c 26dda503bf50fb50d1bb195f7557d68d
+constraint|retailos.role_discount_limits.role_discount_limits_max_line_discount_bps_check|c 1ac16cc0dd0a4a7e2ab19afe8e447dec
+constraint|retailos.role_discount_limits.role_discount_limits_pkey|p 9512ca83be92dfd64cf655decf55fdf4
+constraint|retailos.role_discount_limits.role_discount_limits_role_id_fkey|f 2c2749466c82bf13c6c3b39e88b50382
+constraint|retailos.role_discount_limits.role_discount_limits_tenant_id_fkey|f 306f92bedcd5c902511799074df0c93a
+constraint|retailos.role_permissions.role_permissions_permission_key_fkey|f e1f0ec64df5e1f4904948a188f1ec813
+constraint|retailos.role_permissions.role_permissions_pkey|p 87ad85b816b443cbbfa8489eb4a6151b
+constraint|retailos.role_permissions.role_permissions_role_id_fkey|f 2c2749466c82bf13c6c3b39e88b50382
+constraint|retailos.roles.roles_id_scope_key|u 54dee8488a16e69d91631aa079468e2a
+constraint|retailos.roles.roles_pkey|p 4c6419b3704337bbfe50f018842a9ad3
+constraint|retailos.roles.roles_scope_check|c 5f040557d395163c01f70408b9ced7ea
+constraint|retailos.roles.roles_tenant_id_key_key|u 6830df5022597992c4fe13c80edbd109
+constraint|retailos.schema_info.schema_info_app_check|c 9ce1eb9d7e92780f9c88752790063fb0
+constraint|retailos.schema_info.schema_info_pkey|p 40f569e1ddefc5f44d7946b1731ef265
+constraint|retailos.schema_info.schema_info_schema_version_check|c c9ac567d382e786c20fc795ac21edc5f
+constraint|retailos.tax_classes.tax_classes_code_check|c 870fd0255f591e8fcd63673f233e5b22
+constraint|retailos.tax_classes.tax_classes_name_check|c bb3014415b3823fff7e9c7e62b14b199
+constraint|retailos.tax_classes.tax_classes_pkey|p 4c6419b3704337bbfe50f018842a9ad3
+constraint|retailos.tax_classes.tax_classes_tenant_id_code_key|u c2117c33386420017144d531db1f7a9e
+constraint|retailos.tax_classes.tax_classes_tenant_id_fkey|f 82802272dd88c3d8322b32282c42630a
+constraint|retailos.tax_classes.tax_classes_tenant_id_id_key|u 51ee2716dc1abea90609c31b3f3c041c
+constraint|retailos.tax_rates.tax_rates_check|c 4c1489746a183a07e2a69068298fad2e
+constraint|retailos.tax_rates.tax_rates_gst_rate_pct_check|c 807036cd5c006578d6b0eee7a8a15053
+constraint|retailos.tax_rates.tax_rates_pkey|p 4c6419b3704337bbfe50f018842a9ad3
+constraint|retailos.tax_rates.tax_rates_tenant_id_tax_class_id_fkey|f 3c4d1ad2f0ab8e6bcbe6fa56ae1fc80b
+constraint|retailos.tenant_memberships.tenant_memberships_invited_by_fkey|f fd4a7cde92597a11a3a5e8093f52a512
+constraint|retailos.tenant_memberships.tenant_memberships_pkey|p 4c6419b3704337bbfe50f018842a9ad3
+constraint|retailos.tenant_memberships.tenant_memberships_role_id_role_scope_fkey|f db7df29603087a77a08924fc7a54b5af
+constraint|retailos.tenant_memberships.tenant_memberships_status_check|c 26dda503bf50fb50d1bb195f7557d68d
+constraint|retailos.tenant_memberships.tenant_memberships_tenant_id_fkey|f 82802272dd88c3d8322b32282c42630a
+constraint|retailos.tenant_memberships.tenant_memberships_tenant_id_user_id_key|u 8818b95127d0a05db875490b0e878129
+constraint|retailos.tenant_memberships.tenant_memberships_user_id_fkey|f daefbb1a5074e20adb8fd0e96543f4f4
+constraint|retailos.tenant_sequences.tenant_sequences_name_check|c 0e039dbede50c8a4fc26d663f2aafa08
+constraint|retailos.tenant_sequences.tenant_sequences_next_number_check|c 95685689d2cf8a7680c346171220a5f5
+constraint|retailos.tenant_sequences.tenant_sequences_pkey|p baad187ffaf7208ef356253219f311f9
+constraint|retailos.tenant_sequences.tenant_sequences_tenant_id_fkey|f 82802272dd88c3d8322b32282c42630a
+constraint|retailos.tenant_settings.tenant_settings_financial_year_start_month_check|c 0bcc9865da649818d5d302293e964548
+constraint|retailos.tenant_settings.tenant_settings_pkey|p 7c4ca80043d2f2af17462dab542c6336
+constraint|retailos.tenant_settings.tenant_settings_tenant_id_fkey|f 306f92bedcd5c902511799074df0c93a
+constraint|retailos.tenants.tenants_code_check|c 9f5b160903fd0b70cdc103b45c7ef990
+constraint|retailos.tenants.tenants_code_key|u 62cc54e4d671b4dc6829956b3bc420bd
+constraint|retailos.tenants.tenants_gstin_check|c f1f7b14c72986eb5192226d9e5fb01e5
+constraint|retailos.tenants.tenants_legal_name_check|c db988d0ead51cde0a759c91d155020f8
+constraint|retailos.tenants.tenants_pkey|p 4c6419b3704337bbfe50f018842a9ad3
+constraint|retailos.tenants.tenants_status_check|c ddd20e0ca41e4bb9c4a8ace2fb6e3cda
+constraint|retailos.tenants.tenants_trade_name_check|c fedfa982ac586450f74af84ff46fd49b
+constraint|retailos.variant_costs.variant_costs_cost_price_check|c b0ab86f244a2722af6c175deb009c2dd
+constraint|retailos.variant_costs.variant_costs_pkey|p ab5febba486f07da08a901de73cfc000
+constraint|retailos.variant_costs.variant_costs_tenant_id_variant_id_fkey|f 186255e3ba133141bcdccdeefc2dc5be
+function|retailos.branch_membership_set_status(uuid,uuid,text)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=false
+function|retailos.catalog_create_clothing(uuid,text,text,text,text,jsonb,uuid)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=false
+function|retailos.catalog_create_jewellery(uuid,text,text,text,text,bigint,text,text,numeric,numeric,text,text,uuid)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=false
+function|retailos.catalog_search(uuid,text)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=false
+function|retailos.catalog_update_jewellery(uuid,bigint,boolean)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=false
+function|retailos.discount_limit_set(uuid,text,integer)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=false
+function|retailos.inventory_adjust(uuid,uuid,integer,text,text,uuid)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=false
+function|retailos.membership_grant(uuid,uuid,text,jsonb)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=false
+function|retailos.membership_set_status(uuid,uuid,text)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=false
+function|retailos.metal_rate_set(uuid,text,text,numeric,text,timestamp with time zone,text,uuid)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=false
+function|retailos.permission_override_clear(uuid,uuid,uuid,text)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=false
+function|retailos.permission_override_set(uuid,uuid,uuid,text,text,text,timestamp with time zone)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=false
+function|retailos.platform_create_tenant(text,text,text,uuid)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=false
+function|retailos.pos_checkout(uuid,uuid,uuid,jsonb,jsonb,bigint,jsonb)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=false
+function|retailos.pos_get_session(uuid,uuid)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=false
+function|retailos.pos_quote_cart(uuid,jsonb)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=false
+function|retailos.pos_start_day(uuid,uuid,bigint)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=false
+function|retailos.pos_void_invoice(uuid,text,uuid)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=false
+function|retailos.report_sales_export(uuid,date,date)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=false
+function|retailos.report_sales_summary(uuid,date,date)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=false
+function|retailos.report_tenant_sales(uuid,date,date)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=false
+function|retailos.resolve_barcode(uuid,text)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=false
+function|retailos_private.apply_item_movement(uuid,uuid,uuid,integer,text,text,uuid,date)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
+function|retailos_private.apply_variant_movement(uuid,uuid,uuid,integer,text,text,uuid,text,text,date)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
+function|retailos_private.assert_any_permission(uuid,text)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=true
+function|retailos_private.assert_branch_permission(uuid,text)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=true
+function|retailos_private.assert_tenant_permission(uuid,text)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=true
+function|retailos_private.audit_logs_immutable()|secdef=false config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
+function|retailos_private.audit_row_change()|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
+function|retailos_private.branch_today(uuid)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=true
+function|retailos_private.build_quote(uuid,jsonb,boolean)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
+function|retailos_private.clean_code(text,text)|secdef=false config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
+function|retailos_private.designs_kind_matches_category()|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
+function|retailos_private.discount_limit_bps(uuid)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=true
+function|retailos_private.duplicate_code(text)|secdef=false config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
+function|retailos_private.ensure_category(uuid,text,text)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
+function|retailos_private.ensure_profile(uuid)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
+function|retailos_private.fail(text,jsonb)|secdef=false config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=true
+function|retailos_private.generate_code(uuid,text,text,integer)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
+function|retailos_private.has_any_permission(uuid,text)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=true
+function|retailos_private.has_branch_access(uuid)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=true
+function|retailos_private.has_branch_permission(uuid,text)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=true
+function|retailos_private.has_tenant_access(uuid)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=true
+function|retailos_private.has_tenant_permission(uuid,text)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=true
+function|retailos_private.idem_begin(uuid,text,uuid,text)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
+function|retailos_private.idem_complete(uuid,text,uuid,jsonb)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
+function|retailos_private.invoice_items_guard()|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
+function|retailos_private.invoice_reconciles()|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
+function|retailos_private.invoices_guard()|secdef=false config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
+function|retailos_private.is_platform_admin()|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=true
+function|retailos_private.is_tenant_owner(uuid)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=false
+function|retailos_private.jewellery_item_sold_lock()|secdef=false config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
+function|retailos_private.ledger_immutable()|secdef=false config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
+function|retailos_private.manages_user(uuid,uuid)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=true
+function|retailos_private.next_document_number(uuid,uuid,text,text)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
+function|retailos_private.next_tenant_number(uuid,text)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
+function|retailos_private.override_effect(uuid,uuid,text)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=true
+function|retailos_private.products_clothing_only()|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
+function|retailos_private.schema_info_immutable()|secdef=false config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
+function|retailos_private.set_updated_at()|secdef=false config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
+function|retailos_private.shares_tenant(uuid)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=true
+function|retailos_private.tax_rates_frozen()|secdef=false config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
+function|retailos_private.tax_rates_no_overlap()|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
+function|retailos_private.variant_price_guard()|secdef=false config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
+function|retailos_private.write_audit(uuid,uuid,text,text,uuid,jsonb,jsonb,text,jsonb)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
+index|retailos.audit_logs.audit_logs_entity_idx|f90cb9edc41d6d0296a8c9ce269e319b
+index|retailos.audit_logs.audit_logs_pkey|1da787a2515e661b9f3bdeb58422dcf3
+index|retailos.audit_logs.audit_logs_tenant_time_idx|096294738e2bf8b62af1a326f64dcd2b
+index|retailos.barcode_aliases.barcode_aliases_pkey|354e312a8ebc932bbce67f1ecac67d5b
+index|retailos.barcode_aliases.barcode_aliases_tenant_id_code_key|743aca7c550a36ca5098f65c0a7d2070
+index|retailos.barcode_aliases.barcode_primary_item_idx|287a71e4fb593998711f7dfa410bc1f4
+index|retailos.barcode_aliases.barcode_primary_variant_idx|f1c7c9c8d5b0427f890b2b8223bafb83
+index|retailos.branch_memberships.branch_memberships_branch_id_user_id_key|58fa86014f27728185b2962553a2ec06
+index|retailos.branch_memberships.branch_memberships_pkey|2e45112badb28488d59788234bf2ef98
+index|retailos.branch_memberships.branch_memberships_user_idx|92d11dc3b9ed8eb683c2862ea4f639f2
+index|retailos.branches.branches_pkey|9385168a152743fc792c1b275f47c421
+index|retailos.branches.branches_tenant_id_code_key|131cba06499053e96642d882e98c2645
+index|retailos.branches.branches_tenant_id_id_key|f44a4b62553fcf082280d5a1bb552268
+index|retailos.branches.branches_tenant_idx|d0bf3d9e2840cf293f07318daa9e5f5f
+index|retailos.brands.brands_name_idx|efc898a3bde1e2d9d139f1ec17d3c086
+index|retailos.brands.brands_pkey|2d21a75596a36ee4856d842588e065d6
+index|retailos.brands.brands_tenant_id_id_key|b9ba113d7724a1a7f18347338b63bfa0
+index|retailos.cash_sessions.cash_sessions_one_open_per_counter|7bc7e58cbd6ca7039c264385f11db366
+index|retailos.cash_sessions.cash_sessions_pkey|625d6099d8d318d816411a916df556d9
+index|retailos.cash_sessions.cash_sessions_tenant_id_branch_id_id_key|30fb562b851c978447c47cf646fb9889
+index|retailos.cash_sessions.cash_sessions_tenant_id_id_key|6fbbfd5125078ae044afbcd8e1b10963
+index|retailos.categories.categories_name_idx|4f7b5a0faa1044235e7b03f31691f182
+index|retailos.categories.categories_pkey|fa6bc9e2f797ce70c231c4c2f2a8462b
+index|retailos.categories.categories_tenant_id_id_key|40d483937e832f21eb2c3942fa3e9826
+index|retailos.counters.counters_branch_id_code_key|dadb7352e702b26d1f6b0e209f83e026
+index|retailos.counters.counters_branch_idx|75834ad22845de3800712b3f7e22cc59
+index|retailos.counters.counters_pkey|d15476d00a2e974a057326d3951a9993
+index|retailos.counters.counters_tenant_branch_id_key|c4f1eb1ece9795e03440191bb0477237
+index|retailos.counters.counters_tenant_id_id_key|e80c32afaf12edada171046bb6beae8e
+index|retailos.document_sequences.document_sequences_pkey|48b8307d706ee4449141d4d0f0abfc15
+index|retailos.idempotency_keys.idempotency_keys_pkey|f0377fa73ef9d4f827f93f78a912fe47
+index|retailos.inventory_balances.inventory_balances_pkey|7d266690989a624c3e774423cd10261b
+index|retailos.inventory_balances.inventory_balances_variant_idx|a237a378bdb68d59aea21c3ca2857016
+index|retailos.inventory_movements.inventory_movements_item_idx|ad75ac64e74b8758118d53ccc1714217
+index|retailos.inventory_movements.inventory_movements_pkey|2ea23c0430583f2eee2642f8404552f1
+index|retailos.inventory_movements.inventory_movements_ref_idx|3724522ba534f328b3a3b9830f348575
+index|retailos.inventory_movements.inventory_movements_variant_idx|5e79e720322babe40a18ae04cffb977b
+index|retailos.invoice_items.invoice_items_invoice_id_line_no_key|4392c8ac31475b7bfe485a2995226dcd
+index|retailos.invoice_items.invoice_items_invoice_idx|bc36f7177a45e4ac5296da117853b272
+index|retailos.invoice_items.invoice_items_one_live_sale_per_piece|82e7c98c787794feefcfcb5d77b019f7
+index|retailos.invoice_items.invoice_items_pkey|e87f3052028d5d9b7ee05e09283a478c
+index|retailos.invoice_items.invoice_items_tenant_id_id_key|9bc168c513408aa28dce0f1e5e0c00bf
+index|retailos.invoice_items.invoice_items_variant_idx|39c7e30211108ad76a51e18e6d2f4cc6
+index|retailos.invoices.invoices_branch_date_idx|25598bf1cd16775c9281e6a759e73382
+index|retailos.invoices.invoices_pkey|8d75cfcf036f1a37e329184c8e3ec276
+index|retailos.invoices.invoices_session_idx|2471a4b96fa872b3d7f177f9f5e85e00
+index|retailos.invoices.invoices_tenant_id_branch_id_financial_year_invoice_number_key|f3222742ddf542759a1e92f7236ad09d
+index|retailos.invoices.invoices_tenant_id_id_branch_id_key|1df7b1d460e599a874d5495a66c2251b
+index|retailos.invoices.invoices_tenant_id_id_key|d781272d0e30dfb56d3b8acef7eaa22f
+index|retailos.invoices.invoices_tenant_id_idempotency_key_key|393f971f59c0efdea5ff37e55ed25b2d
+index|retailos.jewellery_designs.jewellery_designs_pkey|9d7949b3a26515c8005d4fc50e1a7dc3
+index|retailos.jewellery_designs.jewellery_designs_tenant_id_design_code_key|05b80dd8522c4a479a7eedcc8e83d59a
+index|retailos.jewellery_designs.jewellery_designs_tenant_id_id_key|22fed260a340a2913bf8946580fb2390
+index|retailos.jewellery_designs.jewellery_designs_tenant_id_id_kind_key|9e1290ceb90cfbf8605ace262c273937
+index|retailos.jewellery_item_costs.jewellery_item_costs_pkey|af69aed4ecc97c757e8107d9d982beee
+index|retailos.jewellery_items.jewellery_items_branch_status_idx|9a26ffaae2bd26ae96d71f3f561f5fa6
+index|retailos.jewellery_items.jewellery_items_pkey|bfd6b9ce528709fdc83ff0e40513f710
+index|retailos.jewellery_items.jewellery_items_tenant_id_id_key|6c3bec15e31010fc6326f8426551b93d
+index|retailos.jewellery_items.jewellery_items_tenant_id_tag_code_key|3ba3fa7c766ac17363e0b373b794448b
+index|retailos.metal_rates.metal_rates_lookup_idx|5bc85dfbb3f74480731a514c79f0028d
+index|retailos.metal_rates.metal_rates_pkey|6642e05cd61fbe79cccfd7fe433eb551
+index|retailos.metal_rates.metal_rates_tenant_id_metal_type_purity_effective_from_key|473d29c8db68a4f3411a540b7c0e4695
+index|retailos.payments.payments_invoice_idx|a11f336ad1dc279c31893acec8c104ad
+index|retailos.payments.payments_pkey|f2e2e578ccae9f11a5619a8d3867bce4
+index|retailos.payments.payments_session_idx|0875a82184329e7ac2c5f90c3f011f86
+index|retailos.permission_overrides.permission_overrides_pkey|ad7f27ddf2576166eff5fb28cab01b9d
+index|retailos.permission_overrides.permission_overrides_tenant_id_user_id_branch_id_permission_key|0e0fa62f67efee23c858c8c66d784633
+index|retailos.permission_overrides.permission_overrides_user_idx|c31fb57c12ab4f6903f15f8ba37cc9c6
+index|retailos.permissions.permissions_pkey|f08f2cac4f03477101a9d54d7b1e06c8
+index|retailos.platform_admins.platform_admins_pkey|6c2324e35b651167e4a82b29c69d567a
+index|retailos.product_variants.product_variants_pkey|0bec6d3301dd2a8c25a5924484ace70a
+index|retailos.product_variants.product_variants_product_id_size_label_colour_label_key|d3cc381143b243aad412f505bfb7f5bf
+index|retailos.product_variants.product_variants_product_idx|429f835635dac94e3cfc053e1cb68017
+index|retailos.product_variants.product_variants_tenant_id_id_key|11ca0bb4ec97b5a6a0e1d195951a2821
+index|retailos.product_variants.product_variants_tenant_id_sku_key|bfd56a0ae95d3a75c5fa888b29ba0811
+index|retailos.products.products_pkey|e30e25db5749d803be4e12c276d0eba0
+index|retailos.products.products_tenant_id_id_key|22fa3539598f16855a1f7a757130a50d
+index|retailos.products.products_tenant_id_style_code_key|b8e192a30787e03cfa17937c9c87c67f
+index|retailos.profiles.profiles_pkey|58f41a876708db701a2ad48245d12379
+index|retailos.role_discount_limits.role_discount_limits_pkey|35eb1abd3dc6f588b92aa484ec5326af
+index|retailos.role_permissions.role_permissions_pkey|e84fb79199e579b95c14eeb52d36be88
+index|retailos.roles.roles_id_scope_key|377e14dee2d971129dc4546284e0481e
+index|retailos.roles.roles_pkey|f8781cc854b46af08f2f8008ad2ed793
+index|retailos.roles.roles_tenant_id_key_key|77c4913d7a1c1434f283c74bc1f29109
+index|retailos.schema_info.schema_info_pkey|9d14d83c8a8dd725aaf21a9e3da1385b
+index|retailos.tax_classes.tax_classes_pkey|dab23e73e2b7c004b802b2fa28ce8047
+index|retailos.tax_classes.tax_classes_tenant_id_code_key|90f122f0a091579f43def6582e167e1b
+index|retailos.tax_classes.tax_classes_tenant_id_id_key|66c18d46fea990ed1a15c2cf2a689e25
+index|retailos.tax_rates.tax_rates_lookup_idx|81457c22612f312863f27a9d4be7d2a5
+index|retailos.tax_rates.tax_rates_pkey|be5ff6f0c6256837f73c63266739bd33
+index|retailos.tenant_memberships.tenant_memberships_pkey|1684dbdb38a206d4de2db09649718b86
+index|retailos.tenant_memberships.tenant_memberships_tenant_id_user_id_key|8d98fedde1af9048accaaf8f984c1521
+index|retailos.tenant_memberships.tenant_memberships_user_idx|bfd84af6aa717d7f07a43060f5a9d3d0
+index|retailos.tenant_sequences.tenant_sequences_pkey|f1e5792826be09c774ed6a3a0a96220e
+index|retailos.tenant_settings.tenant_settings_pkey|b5c066e36fe9f197ae1c8bf0aa07a73a
+index|retailos.tenants.tenants_code_key|726567f7aa2b9da58f548f3b7a8b3307
+index|retailos.tenants.tenants_pkey|0397f4d78eba5dac2f19b5fa062a8b0f
+index|retailos.variant_costs.variant_costs_pkey|ba8d3fcc69fcc7b76018d292a454fb17
+marker|schema_info|app=retailos version=1 set=dedicated-project-v1
+policy|retailos.audit_logs.audit_logs_read|SELECT PERMISSIVE roles=authenticated using=1c7ba20f0d9244742c0fd28105042ae4 check=-
+policy|retailos.barcode_aliases.barcode_aliases_insert|INSERT PERMISSIVE roles=authenticated using=- check=7af9ec80217401caf16bc7b5dc1ef02e
+policy|retailos.barcode_aliases.barcode_aliases_read|SELECT PERMISSIVE roles=authenticated using=91544a6ed42f7ead76a76d69b8985f7a check=-
+policy|retailos.barcode_aliases.barcode_aliases_update|UPDATE PERMISSIVE roles=authenticated using=edf4b65e083444dbce0e7e556ed6b05d check=edf4b65e083444dbce0e7e556ed6b05d
+policy|retailos.branch_memberships.branch_memberships_read|SELECT PERMISSIVE roles=authenticated using=3eebd9b219c9c064e762c5288acec5b1 check=-
+policy|retailos.branches.branches_insert|INSERT PERMISSIVE roles=authenticated using=- check=7f3df79f550f324dce02998454f54951
+policy|retailos.branches.branches_read|SELECT PERMISSIVE roles=authenticated using=969d97085e4afffa019e2ed030fa3d86 check=-
+policy|retailos.branches.branches_update|UPDATE PERMISSIVE roles=authenticated using=7f3df79f550f324dce02998454f54951 check=7f3df79f550f324dce02998454f54951
+policy|retailos.brands.brands_insert|INSERT PERMISSIVE roles=authenticated using=- check=7af9ec80217401caf16bc7b5dc1ef02e
+policy|retailos.brands.brands_read|SELECT PERMISSIVE roles=authenticated using=91544a6ed42f7ead76a76d69b8985f7a check=-
+policy|retailos.brands.brands_update|UPDATE PERMISSIVE roles=authenticated using=edf4b65e083444dbce0e7e556ed6b05d check=edf4b65e083444dbce0e7e556ed6b05d
+policy|retailos.cash_sessions.cash_sessions_read|SELECT PERMISSIVE roles=authenticated using=87d24cc3ab22a1443db6912e009c94ac check=-
+policy|retailos.categories.categories_insert|INSERT PERMISSIVE roles=authenticated using=- check=7af9ec80217401caf16bc7b5dc1ef02e
+policy|retailos.categories.categories_read|SELECT PERMISSIVE roles=authenticated using=91544a6ed42f7ead76a76d69b8985f7a check=-
+policy|retailos.categories.categories_update|UPDATE PERMISSIVE roles=authenticated using=edf4b65e083444dbce0e7e556ed6b05d check=edf4b65e083444dbce0e7e556ed6b05d
+policy|retailos.counters.counters_insert|INSERT PERMISSIVE roles=authenticated using=- check=7f3df79f550f324dce02998454f54951
+policy|retailos.counters.counters_read|SELECT PERMISSIVE roles=authenticated using=3369cfe20dc652dcb49126a5544f893b check=-
+policy|retailos.counters.counters_update|UPDATE PERMISSIVE roles=authenticated using=7f3df79f550f324dce02998454f54951 check=7f3df79f550f324dce02998454f54951
+policy|retailos.inventory_balances.inventory_balances_read|SELECT PERMISSIVE roles=authenticated using=1ec1fc8268bd5bceea27964af72dc4e3 check=-
+policy|retailos.inventory_movements.inventory_movements_read|SELECT PERMISSIVE roles=authenticated using=1ec1fc8268bd5bceea27964af72dc4e3 check=-
+policy|retailos.invoice_items.invoice_items_read|SELECT PERMISSIVE roles=authenticated using=737cb64996f628abfef4ab72b37efceb check=-
+policy|retailos.invoices.invoices_read|SELECT PERMISSIVE roles=authenticated using=366d389491f6b6bba9f11ba36205e947 check=-
+policy|retailos.jewellery_designs.jewellery_designs_insert|INSERT PERMISSIVE roles=authenticated using=- check=7af9ec80217401caf16bc7b5dc1ef02e
+policy|retailos.jewellery_designs.jewellery_designs_read|SELECT PERMISSIVE roles=authenticated using=91544a6ed42f7ead76a76d69b8985f7a check=-
+policy|retailos.jewellery_designs.jewellery_designs_update|UPDATE PERMISSIVE roles=authenticated using=edf4b65e083444dbce0e7e556ed6b05d check=edf4b65e083444dbce0e7e556ed6b05d
+policy|retailos.jewellery_item_costs.jewellery_item_costs_insert|INSERT PERMISSIVE roles=authenticated using=- check=8b2e90f34daa8877060b055d70f2a47c
+policy|retailos.jewellery_item_costs.jewellery_item_costs_read|SELECT PERMISSIVE roles=authenticated using=1c9a779760a483d4bf0d5d19d84080e6 check=-
+policy|retailos.jewellery_item_costs.jewellery_item_costs_update|UPDATE PERMISSIVE roles=authenticated using=8b2e90f34daa8877060b055d70f2a47c check=8b2e90f34daa8877060b055d70f2a47c
+policy|retailos.jewellery_items.jewellery_items_read|SELECT PERMISSIVE roles=authenticated using=51841b73a247bfd9227afe1d008a0eb7 check=-
+policy|retailos.metal_rates.metal_rates_read|SELECT PERMISSIVE roles=authenticated using=ba77a706a3c87a74576606a8f6a958d3 check=-
+policy|retailos.payments.payments_read|SELECT PERMISSIVE roles=authenticated using=f28d60004ff2cbd777934ef482769729 check=-
+policy|retailos.permission_overrides.permission_overrides_read|SELECT PERMISSIVE roles=authenticated using=d4bed66655aa827372c44be947f132ed check=-
+policy|retailos.permissions.permissions_read|SELECT PERMISSIVE roles=authenticated using=b326b5062b2f0e69046810717534cb09 check=-
+policy|retailos.product_variants.product_variants_insert|INSERT PERMISSIVE roles=authenticated using=- check=7af9ec80217401caf16bc7b5dc1ef02e
+policy|retailos.product_variants.product_variants_read|SELECT PERMISSIVE roles=authenticated using=91544a6ed42f7ead76a76d69b8985f7a check=-
+policy|retailos.product_variants.product_variants_update|UPDATE PERMISSIVE roles=authenticated using=edf4b65e083444dbce0e7e556ed6b05d check=edf4b65e083444dbce0e7e556ed6b05d
+policy|retailos.products.products_insert|INSERT PERMISSIVE roles=authenticated using=- check=7af9ec80217401caf16bc7b5dc1ef02e
+policy|retailos.products.products_read|SELECT PERMISSIVE roles=authenticated using=91544a6ed42f7ead76a76d69b8985f7a check=-
+policy|retailos.products.products_update|UPDATE PERMISSIVE roles=authenticated using=edf4b65e083444dbce0e7e556ed6b05d check=edf4b65e083444dbce0e7e556ed6b05d
+policy|retailos.profiles.profiles_read|SELECT PERMISSIVE roles=authenticated using=9bbb3392b00d9fb015be6ff1525fee54 check=-
+policy|retailos.profiles.profiles_update|UPDATE PERMISSIVE roles=authenticated using=15c587ac9e0e9db4618a46c0502f35aa check=15c587ac9e0e9db4618a46c0502f35aa
+policy|retailos.role_discount_limits.role_discount_limits_read|SELECT PERMISSIVE roles=authenticated using=503e605b02320667f5d631168f8235f8 check=-
+policy|retailos.role_permissions.role_permissions_read|SELECT PERMISSIVE roles=authenticated using=b326b5062b2f0e69046810717534cb09 check=-
+policy|retailos.roles.roles_read|SELECT PERMISSIVE roles=authenticated using=f41fb8633e27fae153eea9bc78b58a39 check=-
+policy|retailos.tax_classes.tax_classes_read|SELECT PERMISSIVE roles=authenticated using=91544a6ed42f7ead76a76d69b8985f7a check=-
+policy|retailos.tax_classes.tax_classes_update|UPDATE PERMISSIVE roles=authenticated using=eaf9aae730c47d880d7020755a4ac65b check=eaf9aae730c47d880d7020755a4ac65b
+policy|retailos.tax_classes.tax_classes_write|INSERT PERMISSIVE roles=authenticated using=- check=eaf9aae730c47d880d7020755a4ac65b
+policy|retailos.tax_rates.tax_rates_insert|INSERT PERMISSIVE roles=authenticated using=- check=eaf9aae730c47d880d7020755a4ac65b
+policy|retailos.tax_rates.tax_rates_read|SELECT PERMISSIVE roles=authenticated using=91544a6ed42f7ead76a76d69b8985f7a check=-
+policy|retailos.tax_rates.tax_rates_update|UPDATE PERMISSIVE roles=authenticated using=eaf9aae730c47d880d7020755a4ac65b check=eaf9aae730c47d880d7020755a4ac65b
+policy|retailos.tenant_memberships.tenant_memberships_read|SELECT PERMISSIVE roles=authenticated using=74b921c67baa8b4eebc5bf66cf9c5016 check=-
+policy|retailos.tenant_settings.tenant_settings_read|SELECT PERMISSIVE roles=authenticated using=e7400f7f2d4e73c5337da2a98d3cb078 check=-
+policy|retailos.tenant_settings.tenant_settings_update|UPDATE PERMISSIVE roles=authenticated using=e7400f7f2d4e73c5337da2a98d3cb078 check=e7400f7f2d4e73c5337da2a98d3cb078
+policy|retailos.tenants.tenants_read|SELECT PERMISSIVE roles=authenticated using=330775b6856706030b70c023e75a7cae check=-
+policy|retailos.tenants.tenants_update|UPDATE PERMISSIVE roles=authenticated using=ab2f037c6317d22433822c9eb5490bf8 check=ab2f037c6317d22433822c9eb5490bf8
+policy|retailos.variant_costs.variant_costs_insert|INSERT PERMISSIVE roles=authenticated using=- check=8b2e90f34daa8877060b055d70f2a47c
+policy|retailos.variant_costs.variant_costs_read|SELECT PERMISSIVE roles=authenticated using=1c9a779760a483d4bf0d5d19d84080e6 check=-
+policy|retailos.variant_costs.variant_costs_update|UPDATE PERMISSIVE roles=authenticated using=8b2e90f34daa8877060b055d70f2a47c check=8b2e90f34daa8877060b055d70f2a47c
+schema_usage|retailos_private|anon=false
+schema_usage|retailos_private|authenticated=true
+schema_usage|retailos_private|service_role=true
+schema_usage|retailos|anon=false
+schema_usage|retailos|authenticated=true
+schema_usage|retailos|service_role=true
+schema|retailos_private|owner=postgres
+schema|retailos|owner=postgres
+table_privs|retailos.audit_logs|anon=-
+table_privs|retailos.audit_logs|authenticated=SELECT
+table_privs|retailos.audit_logs|service_role=-
+table_privs|retailos.barcode_aliases|anon=-
+table_privs|retailos.barcode_aliases|authenticated=INSERT,SELECT
+table_privs|retailos.barcode_aliases|service_role=-
+table_privs|retailos.branch_memberships|anon=-
+table_privs|retailos.branch_memberships|authenticated=SELECT
+table_privs|retailos.branch_memberships|service_role=-
+table_privs|retailos.branches|anon=-
+table_privs|retailos.branches|authenticated=INSERT,SELECT,UPDATE
+table_privs|retailos.branches|service_role=-
+table_privs|retailos.brands|anon=-
+table_privs|retailos.brands|authenticated=INSERT,SELECT,UPDATE
+table_privs|retailos.brands|service_role=-
+table_privs|retailos.cash_sessions|anon=-
+table_privs|retailos.cash_sessions|authenticated=SELECT
+table_privs|retailos.cash_sessions|service_role=-
+table_privs|retailos.categories|anon=-
+table_privs|retailos.categories|authenticated=INSERT,SELECT,UPDATE
+table_privs|retailos.categories|service_role=-
+table_privs|retailos.counters|anon=-
+table_privs|retailos.counters|authenticated=INSERT,SELECT,UPDATE
+table_privs|retailos.counters|service_role=-
+table_privs|retailos.document_sequences|anon=-
+table_privs|retailos.document_sequences|authenticated=-
+table_privs|retailos.document_sequences|service_role=-
+table_privs|retailos.idempotency_keys|anon=-
+table_privs|retailos.idempotency_keys|authenticated=-
+table_privs|retailos.idempotency_keys|service_role=-
+table_privs|retailos.inventory_balances|anon=-
+table_privs|retailos.inventory_balances|authenticated=SELECT
+table_privs|retailos.inventory_balances|service_role=-
+table_privs|retailos.inventory_movements|anon=-
+table_privs|retailos.inventory_movements|authenticated=SELECT
+table_privs|retailos.inventory_movements|service_role=-
+table_privs|retailos.invoice_items|anon=-
+table_privs|retailos.invoice_items|authenticated=SELECT
+table_privs|retailos.invoice_items|service_role=-
+table_privs|retailos.invoices|anon=-
+table_privs|retailos.invoices|authenticated=SELECT
+table_privs|retailos.invoices|service_role=-
+table_privs|retailos.jewellery_designs|anon=-
+table_privs|retailos.jewellery_designs|authenticated=INSERT,SELECT,UPDATE
+table_privs|retailos.jewellery_designs|service_role=-
+table_privs|retailos.jewellery_item_costs|anon=-
+table_privs|retailos.jewellery_item_costs|authenticated=INSERT,SELECT,UPDATE
+table_privs|retailos.jewellery_item_costs|service_role=-
+table_privs|retailos.jewellery_items|anon=-
+table_privs|retailos.jewellery_items|authenticated=SELECT
+table_privs|retailos.jewellery_items|service_role=-
+table_privs|retailos.metal_rates|anon=-
+table_privs|retailos.metal_rates|authenticated=SELECT
+table_privs|retailos.metal_rates|service_role=-
+table_privs|retailos.payments|anon=-
+table_privs|retailos.payments|authenticated=SELECT
+table_privs|retailos.payments|service_role=-
+table_privs|retailos.permission_overrides|anon=-
+table_privs|retailos.permission_overrides|authenticated=SELECT
+table_privs|retailos.permission_overrides|service_role=-
+table_privs|retailos.permissions|anon=-
+table_privs|retailos.permissions|authenticated=SELECT
+table_privs|retailos.permissions|service_role=-
+table_privs|retailos.platform_admins|anon=-
+table_privs|retailos.platform_admins|authenticated=-
+table_privs|retailos.platform_admins|service_role=-
+table_privs|retailos.product_variants|anon=-
+table_privs|retailos.product_variants|authenticated=INSERT,SELECT,UPDATE
+table_privs|retailos.product_variants|service_role=-
+table_privs|retailos.products|anon=-
+table_privs|retailos.products|authenticated=INSERT,SELECT,UPDATE
+table_privs|retailos.products|service_role=-
+table_privs|retailos.profiles|anon=-
+table_privs|retailos.profiles|authenticated=SELECT
+table_privs|retailos.profiles|service_role=-
+table_privs|retailos.role_discount_limits|anon=-
+table_privs|retailos.role_discount_limits|authenticated=SELECT
+table_privs|retailos.role_discount_limits|service_role=-
+table_privs|retailos.role_permissions|anon=-
+table_privs|retailos.role_permissions|authenticated=SELECT
+table_privs|retailos.role_permissions|service_role=-
+table_privs|retailos.roles|anon=-
+table_privs|retailos.roles|authenticated=SELECT
+table_privs|retailos.roles|service_role=-
+table_privs|retailos.schema_info|anon=-
+table_privs|retailos.schema_info|authenticated=-
+table_privs|retailos.schema_info|service_role=-
+table_privs|retailos.tax_classes|anon=-
+table_privs|retailos.tax_classes|authenticated=INSERT,SELECT,UPDATE
+table_privs|retailos.tax_classes|service_role=-
+table_privs|retailos.tax_rates|anon=-
+table_privs|retailos.tax_rates|authenticated=INSERT,SELECT
+table_privs|retailos.tax_rates|service_role=-
+table_privs|retailos.tenant_memberships|anon=-
+table_privs|retailos.tenant_memberships|authenticated=SELECT
+table_privs|retailos.tenant_memberships|service_role=-
+table_privs|retailos.tenant_sequences|anon=-
+table_privs|retailos.tenant_sequences|authenticated=-
+table_privs|retailos.tenant_sequences|service_role=-
+table_privs|retailos.tenant_settings|anon=-
+table_privs|retailos.tenant_settings|authenticated=SELECT
+table_privs|retailos.tenant_settings|service_role=-
+table_privs|retailos.tenants|anon=-
+table_privs|retailos.tenants|authenticated=SELECT
+table_privs|retailos.tenants|service_role=-
+table_privs|retailos.variant_costs|anon=-
+table_privs|retailos.variant_costs|authenticated=INSERT,SELECT,UPDATE
+table_privs|retailos.variant_costs|service_role=-
+table|retailos.audit_logs|rls=true force=false owner=postgres
+table|retailos.barcode_aliases|rls=true force=false owner=postgres
+table|retailos.branch_memberships|rls=true force=false owner=postgres
+table|retailos.branches|rls=true force=false owner=postgres
+table|retailos.brands|rls=true force=false owner=postgres
+table|retailos.cash_sessions|rls=true force=false owner=postgres
+table|retailos.categories|rls=true force=false owner=postgres
+table|retailos.counters|rls=true force=false owner=postgres
+table|retailos.document_sequences|rls=true force=false owner=postgres
+table|retailos.idempotency_keys|rls=true force=false owner=postgres
+table|retailos.inventory_balances|rls=true force=false owner=postgres
+table|retailos.inventory_movements|rls=true force=false owner=postgres
+table|retailos.invoice_items|rls=true force=false owner=postgres
+table|retailos.invoices|rls=true force=false owner=postgres
+table|retailos.jewellery_designs|rls=true force=false owner=postgres
+table|retailos.jewellery_item_costs|rls=true force=false owner=postgres
+table|retailos.jewellery_items|rls=true force=false owner=postgres
+table|retailos.metal_rates|rls=true force=false owner=postgres
+table|retailos.payments|rls=true force=false owner=postgres
+table|retailos.permission_overrides|rls=true force=false owner=postgres
+table|retailos.permissions|rls=true force=false owner=postgres
+table|retailos.platform_admins|rls=true force=false owner=postgres
+table|retailos.product_variants|rls=true force=false owner=postgres
+table|retailos.products|rls=true force=false owner=postgres
+table|retailos.profiles|rls=true force=false owner=postgres
+table|retailos.role_discount_limits|rls=true force=false owner=postgres
+table|retailos.role_permissions|rls=true force=false owner=postgres
+table|retailos.roles|rls=true force=false owner=postgres
+table|retailos.schema_info|rls=true force=false owner=postgres
+table|retailos.tax_classes|rls=true force=false owner=postgres
+table|retailos.tax_rates|rls=true force=false owner=postgres
+table|retailos.tenant_memberships|rls=true force=false owner=postgres
+table|retailos.tenant_sequences|rls=true force=false owner=postgres
+table|retailos.tenant_settings|rls=true force=false owner=postgres
+table|retailos.tenants|rls=true force=false owner=postgres
+table|retailos.variant_costs|rls=true force=false owner=postgres
+trigger|retailos.audit_logs.audit_logs_no_truncate|enabled=O b0a493c68b87087b0dcdaa987aeef083
+trigger|retailos.audit_logs.audit_logs_no_update|enabled=O a9eacd3fc6e174c2ceae1d8bb7e40acc
+trigger|retailos.branch_memberships.branch_memberships_audit|enabled=O fc4d61b8aa3633b546d5ec88ef8ca5db
+trigger|retailos.branch_memberships.branch_memberships_updated|enabled=O 3139302cb961b81c3b46bc92db813d93
+trigger|retailos.branches.branches_audit|enabled=O 47e068e0302f76d58ebb6a1b3ed7789e
+trigger|retailos.branches.branches_updated|enabled=O fd1dfbd25bae500ea94aa48287ac7d46
+trigger|retailos.inventory_movements.inventory_movements_no_change|enabled=O 08425b0fa76b9a17fa71463ea2117ac8
+trigger|retailos.inventory_movements.inventory_movements_no_truncate|enabled=O 16fc79130767041ce7fd8b37a0592ace
+trigger|retailos.invoice_items.invoice_items_immutable|enabled=O 54f9f8a9182caa8c72993b7605ad055d
+trigger|retailos.invoice_items.invoice_items_no_truncate|enabled=O 946015342405ce6f23c57e6359cbf686
+trigger|retailos.invoices.invoices_audit|enabled=O 2e9443df610d157300bdb3d0005364f4
+trigger|retailos.invoices.invoices_immutable|enabled=O 42c2d003f9271a5cfc0f77aa8321dafb
+trigger|retailos.invoices.invoices_no_truncate|enabled=O c898bc0df0b96c0bd8195fdba53b1072
+trigger|retailos.invoices.invoices_reconcile|enabled=O 8bbaaf8dff4e0491851c145f2fe155ae
+trigger|retailos.jewellery_designs.jewellery_designs_kind|enabled=O da9110e89ce587addafda26788b98e44
+trigger|retailos.jewellery_items.jewellery_items_audit|enabled=O ff6123cab1f711ef3011da46f207894e
+trigger|retailos.jewellery_items.jewellery_items_sold_lock|enabled=O 73c861a4e4ac6855a9d63122655d21d4
+trigger|retailos.jewellery_items.jewellery_items_updated|enabled=O abb606c3b4e276d012dcf94b3239bd80
+trigger|retailos.metal_rates.metal_rates_audit|enabled=O 865637cc0363014f2fe1a6a3e46c472b
+trigger|retailos.metal_rates.metal_rates_immutable|enabled=O 410c8240fe161047bcc079f4da6c760b
+trigger|retailos.metal_rates.metal_rates_no_truncate|enabled=O 4f8f01dc79869b88fd52d70d73d79915
+trigger|retailos.payments.payments_immutable|enabled=O f734d2609daf649e411b5700e2b7ab1d
+trigger|retailos.payments.payments_no_truncate|enabled=O 9765126b6e28e3af570c1fb376d686d1
+trigger|retailos.permission_overrides.permission_overrides_audit|enabled=O 1f80db72e70f2186fcc5191514c86916
+trigger|retailos.product_variants.product_variants_audit|enabled=O 98fb0b53eb883ebc2a09967c0c1b6bcf
+trigger|retailos.product_variants.product_variants_price_guard|enabled=O 2c2231f748d015ccfb1844ae24e7b1b1
+trigger|retailos.product_variants.product_variants_updated|enabled=O 9cfce534dba371d6c843936c8ca613fd
+trigger|retailos.products.products_kind|enabled=O 1275b5c1c162aa79a62ecfab5b3f6df3
+trigger|retailos.products.products_updated|enabled=O 3af7c9d53e74e31900608d4b04802e3c
+trigger|retailos.profiles.profiles_updated|enabled=O eca1538ca49ef038c1a1e7b3ff67ee38
+trigger|retailos.role_discount_limits.role_discount_limits_audit|enabled=O a6dfe74d5745ef852468914d36ea158f
+trigger|retailos.schema_info.schema_info_no_change|enabled=O 51fc62fa539d55ae19243755842b047c
+trigger|retailos.schema_info.schema_info_no_truncate|enabled=O 16ad36c749ba83cf04eed74ed970c2d6
+trigger|retailos.tax_classes.tax_classes_audit|enabled=O 05e1f37100567079c7489acc082122a8
+trigger|retailos.tax_rates.tax_rates_audit|enabled=O bd039190c7dacc7f763c3e9d9b58e35e
+trigger|retailos.tax_rates.tax_rates_freeze|enabled=O 45be52f89e06148827c39881ca268f90
+trigger|retailos.tax_rates.tax_rates_overlap|enabled=O 4f8a7eff010778ef8d5593040fc19c45
+trigger|retailos.tenant_memberships.tenant_memberships_audit|enabled=O f3f35dc2e5074ab6783b70d3615c75ec
+trigger|retailos.tenant_memberships.tenant_memberships_updated|enabled=O ef78e47f156b2073d3197bdb5f404dfd
+trigger|retailos.tenant_settings.tenant_settings_audit|enabled=O 5b86b94f988ac1a561bebddaf6589389
+trigger|retailos.tenant_settings.tenant_settings_updated|enabled=O ab7539f3f69169bc233a73d7070322c9
+trigger|retailos.tenants.tenants_audit|enabled=O 1df23888fbba4354f6ef9ee14dfec5c0
+trigger|retailos.tenants.tenants_updated|enabled=O a2d864347625c1f5809015b75199341d
+trigger|retailos.variant_costs.variant_costs_audit|enabled=O 632f37af773553040c5eec62b993a19d

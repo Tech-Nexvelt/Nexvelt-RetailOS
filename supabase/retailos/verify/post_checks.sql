@@ -45,10 +45,13 @@ select p.tablename::text || '.' || p.policyname as problem
 from pg_policies p
 where p.schemaname = 'retailos' and (p.roles && array['public', 'anon']::name[]);
 
+-- The ONLY allowed exceptions below are the two read-only policies on the global permission-name catalogue
+-- (permissions, role_permissions): reference data shared by every business, no tenant rows. Any other open policy is a problem.
 -- @query tautological_policy
 select p.tablename::text || '.' || p.policyname as problem
 from pg_policies p
 where p.schemaname = 'retailos'
+  and (p.tablename, p.policyname) not in (('permissions', 'permissions_read'), ('role_permissions', 'role_permissions_read'))
   and (regexp_replace(coalesce(p.qual, ''), '[()\s]', '', 'g') = 'true' or regexp_replace(coalesce(p.with_check, ''), '[()\s]', '', 'g') = 'true');
 
 -- @query trigger_on_auth_users

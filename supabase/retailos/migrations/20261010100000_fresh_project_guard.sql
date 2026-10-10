@@ -33,10 +33,10 @@ begin
     problems := problems || format('required Supabase role "%s" does not exist: this does not look like a Supabase project', r.role_name);
   end loop;
   if to_regclass('auth.users') is null then
-    problems := problems || 'table auth.users does not exist: Supabase Auth is not set up on this database';
+    problems := problems || 'table auth.users does not exist: Supabase Auth is not set up on this database'::text;
   end if;
   if to_regprocedure('auth.uid()') is null or to_regprocedure('auth.jwt()') is null then
-    problems := problems || 'functions auth.uid() / auth.jwt() do not exist: Supabase Auth is not set up on this database';
+    problems := problems || 'functions auth.uid() / auth.jwt() do not exist: Supabase Auth is not set up on this database'::text;
   end if;
 
   -- 2. The schemas this migration creates must not exist yet.
