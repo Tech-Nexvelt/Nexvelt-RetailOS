@@ -1,0 +1,7 @@
+# Keep line endings byte-stable. The migrations, manifests and seals are verified by SHA-256, so a checkout
+# that rewrites LF as CRLF (Git's default on Windows) would break them.
+* text=auto eol=lf
+*.sql text eol=lf
+*.sha256 text eol=lf
+SHA256SUMS text eol=lf
+*.png binary

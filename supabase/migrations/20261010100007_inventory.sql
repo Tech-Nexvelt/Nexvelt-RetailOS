@@ -1,0 +1,258 @@
+-- M0007 inventory: branch stock levels, the movement ledger, document sequences, idempotency keys.
+
+-- ---------------------------------------------------------------------------------------------
+-- Stock levels and the append-only movement ledger
+-- ---------------------------------------------------------------------------------------------
+create table public.inventory_balances (
+  tenant_id  uuid not null,
+  branch_id  uuid not null,
+  variant_id uuid not null,
+  on_hand    integer not null default 0 check (on_hand >= 0),
+  updated_at timestamptz not null default now(),
+  primary key (branch_id, variant_id),
+  foreign key (tenant_id, branch_id) references public.branches (tenant_id, id) on delete restrict,
+  foreign key (tenant_id, variant_id) references public.product_variants (tenant_id, id) on delete restrict
+);
+create index inventory_balances_variant_idx on public.inventory_balances (tenant_id, variant_id);
+
+create table public.inventory_movements (
+  id                bigint generated always as identity primary key,
+  tenant_id         uuid not null,
+  branch_id         uuid not null,
+  movement_type     text not null check (movement_type in
+                      ('OPENING', 'PURCHASE_RECEIPT', 'SALE', 'SALE_VOID', 'SALE_RETURN', 'ADJUSTMENT_IN', 'ADJUSTMENT_OUT')),
+  item_type         text not null check (item_type in ('VARIANT', 'JEWELLERY_ITEM')),
+  variant_id        uuid,
+  jewellery_item_id uuid,
+  quantity_delta    integer not null check (quantity_delta <> 0),
+  balance_after     integer check (balance_after is null or balance_after >= 0),
+  reference_type    text,
+  reference_id      uuid,
+  reason_code       text,
+  note              text,
+  business_date     date not null,
+  created_by        uuid default auth.uid(),
+  created_at        timestamptz not null default now(),
+  check (num_nonnulls(variant_id, jewellery_item_id) = 1),
+  check ((item_type = 'VARIANT') = (variant_id is not null)),
+  check (item_type = 'VARIANT' or quantity_delta in (-1, 1)),
+  foreign key (tenant_id, branch_id) references public.branches (tenant_id, id) on delete restrict,
+  foreign key (tenant_id, variant_id) references public.product_variants (tenant_id, id) on delete restrict,
+  foreign key (tenant_id, jewellery_item_id) references public.jewellery_items (tenant_id, id) on delete restrict
+);
+create index inventory_movements_variant_idx on public.inventory_movements (tenant_id, branch_id, variant_id, id);
+create index inventory_movements_item_idx on public.inventory_movements (tenant_id, jewellery_item_id, id);
+create index inventory_movements_ref_idx on public.inventory_movements (reference_type, reference_id);
+
+create or replace function private.ledger_immutable()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  raise exception '% is append-only', tg_table_name using errcode = '42501';
+end;
+$$;
+create trigger inventory_movements_no_change before update or delete on public.inventory_movements
+  for each row execute function private.ledger_immutable();
+create trigger inventory_movements_no_truncate before truncate on public.inventory_movements
+  for each statement execute function private.ledger_immutable();
+
+-- The only way stock changes. Callers lock the balance row first (FOR UPDATE) when ordering matters.
+create or replace function private.apply_variant_movement(
+  p_tenant uuid, p_branch uuid, p_variant uuid, p_delta integer, p_type text,
+  p_ref_type text, p_ref_id uuid, p_reason text, p_note text, p_date date
+) returns integer
+language plpgsql
+security definer set search_path = ''
+as $$
+declare
+  v_after integer;
+begin
+  insert into public.inventory_balances (tenant_id, branch_id, variant_id, on_hand)
+    values (p_tenant, p_branch, p_variant, 0)
+  on conflict (branch_id, variant_id) do nothing;
+  begin
+    update public.inventory_balances set on_hand = on_hand + p_delta, updated_at = now()
+      where branch_id = p_branch and variant_id = p_variant
+      returning on_hand into v_after;
+  exception when check_violation then
+    perform private.fail('INSUFFICIENT_STOCK', jsonb_build_object('itemId', p_variant));
+  end;
+  insert into public.inventory_movements (tenant_id, branch_id, movement_type, item_type, variant_id,
+      quantity_delta, balance_after, reference_type, reference_id, reason_code, note, business_date)
+    values (p_tenant, p_branch, p_type, 'VARIANT', p_variant, p_delta, v_after, p_ref_type, p_ref_id,
+            p_reason, p_note, p_date);
+  return v_after;
+end;
+$$;
+
+create or replace function private.apply_item_movement(
+  p_tenant uuid, p_branch uuid, p_item uuid, p_delta integer, p_type text,
+  p_ref_type text, p_ref_id uuid, p_date date
+) returns void
+language sql
+security definer set search_path = ''
+as $$
+  insert into public.inventory_movements (tenant_id, branch_id, movement_type, item_type, jewellery_item_id,
+      quantity_delta, reference_type, reference_id, business_date)
+  values (p_tenant, p_branch, p_type, 'JEWELLERY_ITEM', p_item, p_delta, p_ref_type, p_ref_id, p_date);
+$$;
+
+-- ---------------------------------------------------------------------------------------------
+-- Gapless document numbers and idempotency keys (internal; no API access)
+-- ---------------------------------------------------------------------------------------------
+create table public.document_sequences (
+  tenant_id      uuid not null,
+  branch_id      uuid not null,
+  document_type  text not null check (document_type in ('INVOICE', 'CREDIT_NOTE', 'ADJUSTMENT')),
+  financial_year text not null default '',
+  next_number    bigint not null default 1 check (next_number >= 1),
+  primary key (tenant_id, branch_id, document_type, financial_year),
+  foreign key (tenant_id, branch_id) references public.branches (tenant_id, id) on delete restrict
+);
+
+-- Allocate the next number. The row update takes a lock held until the caller's transaction ends, so
+-- allocation is serialised per branch/type/year, and a rollback gives the number back: no gaps.
+create or replace function private.next_document_number(p_tenant uuid, p_branch uuid, p_type text, p_fy text)
+returns bigint
+language plpgsql
+security definer set search_path = ''
+as $$
+declare
+  v_next bigint;
+begin
+  insert into public.document_sequences (tenant_id, branch_id, document_type, financial_year)
+    values (p_tenant, p_branch, p_type, p_fy)
+  on conflict do nothing;
+  update public.document_sequences set next_number = next_number + 1
+    where tenant_id = p_tenant and branch_id = p_branch and document_type = p_type and financial_year = p_fy
+    returning next_number - 1 into v_next;
+  return v_next;
+end;
+$$;
+
+create table public.idempotency_keys (
+  tenant_id     uuid not null references public.tenants (id) on delete restrict,
+  scope         text not null,
+  key           uuid not null,
+  request_hash  text not null,
+  actor_user_id uuid not null,
+  status        text not null default 'PENDING' check (status in ('PENDING', 'COMPLETED')),
+  response      jsonb,
+  created_at    timestamptz not null default now(),
+  completed_at  timestamptz,
+  primary key (tenant_id, scope, key)
+);
+
+-- Start an idempotent operation.
+--   returns NULL        -> this is the first time: proceed.
+--   returns a jsonb     -> the same request already completed: return this stored response unchanged.
+-- A concurrent duplicate blocks inside the INSERT until the first transaction commits or rolls back.
+-- The key is bound to the user who first used it and to the exact request contents.
+create or replace function private.idem_begin(p_tenant uuid, p_scope text, p_key uuid, p_hash text)
+returns jsonb
+language plpgsql
+security definer set search_path = ''
+as $$
+declare
+  v_inserted integer;
+  v_row public.idempotency_keys;
+begin
+  insert into public.idempotency_keys (tenant_id, scope, key, request_hash, actor_user_id)
+    values (p_tenant, p_scope, p_key, p_hash, (select auth.uid()))
+  on conflict do nothing;
+  get diagnostics v_inserted = row_count;
+  if v_inserted = 1 then
+    return null;
+  end if;
+  select * into v_row from public.idempotency_keys
+    where tenant_id = p_tenant and scope = p_scope and key = p_key;
+  if v_row.request_hash <> p_hash or v_row.actor_user_id is distinct from (select auth.uid()) then
+    perform private.fail('IDEMPOTENCY_KEY_REUSED');
+  end if;
+  if v_row.status <> 'COMPLETED' then
+    perform private.fail('CONCURRENT_UPDATE');
+  end if;
+  return v_row.response;
+end;
+$$;
+
+create or replace function private.idem_complete(p_tenant uuid, p_scope text, p_key uuid, p_response jsonb)
+returns void
+language sql
+security definer set search_path = ''
+as $$
+  update public.idempotency_keys
+     set status = 'COMPLETED', response = p_response, completed_at = now()
+   where tenant_id = p_tenant and scope = p_scope and key = p_key;
+$$;
+
+-- ---------------------------------------------------------------------------------------------
+-- Stock adjustment (reason required, idempotent, audited)
+-- ---------------------------------------------------------------------------------------------
+create or replace function public.inventory_adjust(
+  p_branch uuid, p_variant uuid, p_delta integer, p_reason_code text, p_note text, p_idempotency_key uuid
+) returns jsonb
+language plpgsql
+security definer set search_path = ''
+as $$
+declare
+  v_tenant uuid;
+  v_hash text;
+  v_replay jsonb;
+  v_after integer;
+  v_response jsonb;
+  v_date date;
+begin
+  perform private.assert_branch_permission(p_branch, 'inventory.adjust');
+  select tenant_id into v_tenant from public.branches where id = p_branch;
+  if p_delta is null or p_delta = 0 or abs(p_delta) > 100000 then perform private.fail('VALIDATION_ERROR'); end if;
+  if p_reason_code not in ('COUNT_CORRECTION', 'DAMAGE', 'LOSS', 'FOUND', 'WRITE_OFF', 'OTHER') then
+    perform private.fail('VALIDATION_ERROR', jsonb_build_object('field', 'reason'));
+  end if;
+  if not exists (select 1 from public.product_variants where tenant_id = v_tenant and id = p_variant) then
+    perform private.fail('ITEM_NOT_FOUND');
+  end if;
+
+  v_hash := encode(sha256(convert_to(jsonb_build_object('b', p_branch, 'v', p_variant, 'd', p_delta, 'r', p_reason_code, 'n', coalesce(p_note, ''))::text, 'UTF8')), 'hex');
+  v_replay := private.idem_begin(v_tenant, 'inventory_adjust', p_idempotency_key, v_hash);
+  if v_replay is not null then return v_replay || jsonb_build_object('replayed', true); end if;
+
+  v_date := (now() at time zone (select timezone from public.branches where id = p_branch))::date;
+  -- lock the balance row so a concurrent sale or adjustment cannot interleave
+  insert into public.inventory_balances (tenant_id, branch_id, variant_id) values (v_tenant, p_branch, p_variant)
+    on conflict (branch_id, variant_id) do nothing;
+  perform 1 from public.inventory_balances where branch_id = p_branch and variant_id = p_variant for update;
+  v_after := private.apply_variant_movement(v_tenant, p_branch, p_variant, p_delta,
+              case when p_delta > 0 then 'ADJUSTMENT_IN' else 'ADJUSTMENT_OUT' end,
+              'ADJUSTMENT', p_idempotency_key, p_reason_code, p_note, v_date);
+  perform private.write_audit(v_tenant, p_branch, 'inventory.adjust', 'product_variant', p_variant, null,
+            jsonb_build_object('delta', p_delta, 'balanceAfter', v_after), p_reason_code, jsonb_build_object('note', p_note));
+  v_response := jsonb_build_object('variantId', p_variant, 'balanceAfter', v_after, 'replayed', false);
+  perform private.idem_complete(v_tenant, 'inventory_adjust', p_idempotency_key, v_response);
+  return v_response;
+end;
+$$;
+
+-- ---------------------------------------------------------------------------------------------
+-- Privileges and RLS
+-- ---------------------------------------------------------------------------------------------
+grant select on public.inventory_balances, public.inventory_movements to authenticated;
+-- document_sequences and idempotency_keys: no privileges for API roles at all.
+
+alter table public.inventory_balances  enable row level security;
+alter table public.inventory_movements enable row level security;
+alter table public.document_sequences  enable row level security;
+alter table public.idempotency_keys    enable row level security;
+
+-- Stock levels are visible only with inventory.view (a cashier sees availability while billing,
+-- computed inside the billing functions, but not the stock ledger).
+create policy inventory_balances_read on public.inventory_balances for select to authenticated
+  using (private.has_branch_permission(branch_id, 'inventory.view'));
+create policy inventory_movements_read on public.inventory_movements for select to authenticated
+  using (private.has_branch_permission(branch_id, 'inventory.view'));
+
+revoke execute on all functions in schema private from public, anon;
+revoke execute on function public.inventory_adjust(uuid, uuid, integer, text, text, uuid) from public, anon;
+grant execute on function public.inventory_adjust(uuid, uuid, integer, text, text, uuid) to authenticated;

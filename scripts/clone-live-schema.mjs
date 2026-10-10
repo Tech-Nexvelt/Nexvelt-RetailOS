@@ -1,0 +1,194 @@
+// Builds a LOCAL, replayable copy of the live project's SCHEMA (no data) so migrations can be dry-run
+// against a faithful clone instead of a hand-made fixture.
+//
+//   SUPABASE_ACCESS_TOKEN=... SUPABASE_PROJECT_REF=... node scripts/clone-live-schema.mjs
+//
+// READ-ONLY by construction: every query goes to the Management API's read-only SQL endpoint
+// (`/database/query/read-only`), which runs inside a read-only transaction. It reads catalog metadata
+// only (pg_class, pg_policy, pg_proc, ...) and never table rows. Nothing is written to the project.
+// The token is read from the environment, never written to disk or printed.
+//
+// Output (git-ignored, because it contains the other app's function bodies and policies):
+//   .local/live-clone/schema.sql    statements separated by "-- @stmt" lines (replayed by tests/db/harness.ts)
+//   .local/live-clone/live-hashes.json   hashes of the live catalog, to prove the clone matches
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+
+const token = process.env.SUPABASE_ACCESS_TOKEN;
+const ref = process.env.SUPABASE_PROJECT_REF;
+if (!token || !ref) throw new Error("Set SUPABASE_ACCESS_TOKEN and SUPABASE_PROJECT_REF in the environment.");
+const root = join(import.meta.dirname, "..");
+const outDir = join(root, ".local", "live-clone");
+mkdirSync(outDir, { recursive: true });
+
+async function q(sql) {
+  const r = await fetch(`https://api.supabase.com/v1/projects/${ref}/database/query/read-only`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ query: sql }),
+  });
+  const body = await r.json();
+  if (!Array.isArray(body)) throw new Error("query failed: " + JSON.stringify(body).slice(0, 300));
+  return body;
+}
+
+const SCHEMAS = ["public", "cms", "auth_custom", "retailos"];
+const IN = `(${SCHEMAS.map((s) => `'${s}'`).join(",")})`;
+const ident = (s) => `"${String(s).replace(/"/g, '""')}"`;
+const stmts = [];
+const add = (s) => stmts.push(s.trim().replace(/;?$/, ";"));
+
+// ---- roles used by owners / ACLs
+const roles = await q(`select distinct r from (
+    select pg_get_userbyid(a.grantee) r from pg_class c join pg_namespace n on n.oid=c.relnamespace, aclexplode(c.relacl) a where n.nspname in ${IN}
+    union select pg_get_userbyid(a.grantee) from pg_proc p join pg_namespace n on n.oid=p.pronamespace, aclexplode(p.proacl) a where n.nspname in ${IN}
+    union select pg_get_userbyid(a.grantee) from pg_namespace n, aclexplode(n.nspacl) a where n.nspname in ${IN}
+    union select pg_get_userbyid(defaclrole) from pg_default_acl
+    union select pg_get_userbyid(c.relowner) from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname in ${IN}
+    union select pg_get_userbyid(p.proowner) from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname in ${IN}) x where r is not null and r not like 'unknown%'`);
+for (const { r } of roles) {
+  if (["postgres", "pg_database_owner"].includes(r)) continue;
+  add(`do $$ begin if not exists (select 1 from pg_roles where rolname = '${r}') then create role ${ident(r)} nologin; end if; end $$`);
+}
+
+// ---- schemas (public already exists)
+for (const s of SCHEMAS.filter((x) => x !== "public")) add(`create schema if not exists ${ident(s)}`);
+const nsp = await q(`select n.nspname s, pg_get_userbyid(a.grantee) g, a.privilege_type p, a.is_grantable gr, a.grantee gid from pg_namespace n cross join lateral unnest(n.nspacl) with ordinality u(item, ord) cross join lateral aclexplode(array[u.item]) a where n.nspname in ${IN} order by 1, u.ord`);
+for (const x of nsp) {
+  if (x.g.startsWith("unknown") || x.gid === 0) add(`grant ${x.p} on schema ${ident(x.s)} to public`);
+  else if (x.g !== "pg_database_owner") add(`grant ${x.p} on schema ${ident(x.s)} to ${ident(x.g)}${x.gr ? " with grant option" : ""}`);
+}
+
+// ---- tables
+const tables = await q(`select c.oid::int oid, n.nspname s, c.relname t, c.relrowsecurity rls, c.relforcerowsecurity frls, c.relpersistence per
+  from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname in ${IN} and c.relkind='r' order by 2,3`);
+const cols = await q(`select a.attrelid::int oid, a.attnum n, a.attname c, format_type(a.atttypid,a.atttypmod) ty, a.attnotnull nn, a.attidentity idn, a.attgenerated gen,
+    pg_get_expr(d.adbin, d.adrelid) def, coalesce(a.attcollation::regcollation::text,'') coll
+  from pg_attribute a join pg_class c on c.oid=a.attrelid join pg_namespace n on n.oid=c.relnamespace
+  left join pg_attrdef d on d.adrelid=a.attrelid and d.adnum=a.attnum
+  where n.nspname in ${IN} and c.relkind='r' and a.attnum>0 and not a.attisdropped order by 1,2`);
+for (const t of tables) {
+  const cs = cols.filter((c) => c.oid === t.oid).map((c) => {
+    let l = `${ident(c.c)} ${c.ty}`;
+    if (c.idn === "a") l += " generated always as identity";
+    else if (c.idn === "d") l += " generated by default as identity";
+    else if (c.gen === "s") l += ` generated always as (${c.def}) stored`;
+    else if (c.def) l += ` default ${c.def}`;
+    if (c.nn) l += " not null";
+    return "  " + l;
+  });
+  add(`create ${t.per === "u" ? "unlogged " : ""}table ${ident(t.s)}.${ident(t.t)} (\n${cs.join(",\n")}\n)`);
+}
+
+// ---- constraints (keys/checks first, then foreign keys)
+const cons = await q(`select conrelid::regclass::text tbl, conname, contype, pg_get_constraintdef(oid) def, conindid::int ind
+  from pg_constraint where connamespace in (select oid from pg_namespace where nspname in ${IN}) and conrelid <> 0 and conrelid in (select oid from pg_class where relkind='r')
+  order by (contype='f'), 1, 2`);
+const constraintIdx = new Set(cons.map((c) => c.ind).filter(Boolean));
+for (const c of cons) add(`alter table ${c.tbl} add constraint ${ident(c.conname)} ${c.def}`);
+
+// ---- indexes not backing a constraint
+const idx = await q(`select i.indexrelid::int oid, pg_get_indexdef(i.indexrelid) def from pg_index i join pg_class c on c.oid=i.indrelid join pg_namespace n on n.oid=c.relnamespace
+  where n.nspname in ${IN} and c.relkind='r' order by 1`);
+for (const i of idx) if (!constraintIdx.has(i.oid)) add(i.def);
+
+// ---- RLS flags
+for (const t of tables) {
+  if (t.rls) add(`alter table ${ident(t.s)}.${ident(t.t)} enable row level security`);
+  if (t.frls) add(`alter table ${ident(t.s)}.${ident(t.t)} force row level security`);
+}
+
+// ---- functions (before policies/views/triggers; bodies are not validated at creation)
+const fns = await q(`select p.oid::int oid, p.oid::regprocedure::text sig, pg_get_functiondef(p.oid) def, p.proacl is not null has_acl
+  from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname in ${IN} and p.prokind='f' order by 2`);
+for (const f of fns) add(f.def);
+const fnAcl = await q(`select p.oid::regprocedure::text sig, a.grantee gid, pg_get_userbyid(a.grantee) g, a.privilege_type p, a.is_grantable gr
+  from pg_proc p join pg_namespace n on n.oid=p.pronamespace cross join lateral unnest(p.proacl) with ordinality u(item, ord) cross join lateral aclexplode(array[u.item]) a where n.nspname in ${IN} order by 1, u.ord`);
+const fnWithAcl = [...new Set(fnAcl.map((a) => a.sig))];
+for (const sig of fnWithAcl) {
+  const items = fnAcl.filter((x) => x.sig === sig);
+  // A new function starts as {=X/owner,owner=X/owner} (PUBLIC first). Keep PUBLIC when live has it, so the
+  // array order matches; otherwise remove it.
+  if (!items.some((x) => x.gid === 0)) add(`revoke all on function ${sig} from public`);
+  for (const a of items) {
+    if (a.gid === 0 || a.g === "postgres") continue;
+    add(`grant execute on function ${sig} to ${ident(a.g)}${a.gr ? " with grant option" : ""}`);
+  }
+}
+
+// ---- views (retry-ordered by the loader)
+const views = await q(`select n.nspname s, c.relname v, pg_get_viewdef(c.oid, true) def, coalesce(c.reloptions::text,'') opts
+  from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname in ${IN} and c.relkind='v' order by 1,2`);
+for (const v of views) {
+  const opt = /security_invoker=(true|on)/.test(v.opts) ? " with (security_invoker=true)" : "";
+  add(`create view ${ident(v.s)}.${ident(v.v)}${opt} as ${v.def.replace(/;\s*$/, "")}`);
+}
+
+// ---- policies
+const pols = await q(`select schemaname s, tablename t, policyname n, permissive p, roles::text r, cmd, qual, with_check from pg_policies where schemaname in ${IN} order by 1,2,3`);
+for (const p of pols) {
+  const roleList = p.r.replace(/^\{|\}$/g, "").split(",").filter(Boolean).map((r) => (r === "public" ? "public" : ident(r))).join(", ");
+  add(`create policy ${ident(p.n)} on ${ident(p.s)}.${ident(p.t)} as ${p.p === "PERMISSIVE" ? "permissive" : "restrictive"} for ${p.cmd.toLowerCase()} to ${roleList || "public"}${p.qual ? ` using (${p.qual})` : ""}${p.with_check ? ` with check (${p.with_check})` : ""}`);
+}
+
+// ---- triggers (tables in our schemas, and Tirumala's trigger on auth.users)
+const trgs = await q(`select tgrelid::regclass::text tbl, tgname, tgenabled, pg_get_triggerdef(oid) def from pg_trigger
+  where not tgisinternal and (tgrelid::regclass::text ~ '^(public|cms|auth_custom|retailos)\\.' or tgrelid = 'auth.users'::regclass
+     or tgrelid in (select oid from pg_class where relnamespace in (select oid from pg_namespace where nspname in ${IN}))) order by 1,2`);
+for (const t of trgs) {
+  add(t.def);
+  if (t.tgenabled !== "O") add(`alter table ${t.tbl} ${t.tgenabled === "D" ? "disable" : t.tgenabled === "A" ? "enable always" : "enable replica"} trigger ${ident(t.tgname)}`);
+}
+
+// ---- table/view ACLs (explicit grants reproduce the live ACL arrays)
+const acls = await q(`select n.nspname s, c.relname t, a.grantee gid, pg_get_userbyid(a.grantee) g, a.privilege_type p, a.is_grantable gr
+  from pg_class c join pg_namespace n on n.oid=c.relnamespace cross join lateral unnest(c.relacl) with ordinality u(item, ord) cross join lateral aclexplode(array[u.item]) a
+  where n.nspname in ${IN} and c.relkind in ('r','v') order by 1,2,u.ord`);
+const byObj = new Map();
+for (const a of acls) {
+  const k = `${a.s}.${a.t}`;
+  if (!byObj.has(k)) byObj.set(k, new Map());
+  const gk = a.gid === 0 ? "public" : a.g;
+  const m = byObj.get(k);
+  if (!m.has(gk)) m.set(gk, []);
+  m.get(gk).push(a.p);
+}
+for (const [k, m] of byObj) {
+  const [s, t] = k.split(".");
+  for (const [g, privs] of m) {
+    if (g === "postgres") continue; // owner
+    add(`grant ${privs.join(", ")} on ${ident(s)}.${ident(t)} to ${g === "public" ? "public" : ident(g)}`);
+  }
+}
+
+// ---- default privileges (set last so they do not alter the ACLs above)
+const defs = await q(`select pg_get_userbyid(defaclrole) r, defaclnamespace::regnamespace::text ns, defaclobjtype ot, a.grantee gid, pg_get_userbyid(a.grantee) g, a.privilege_type p
+  from pg_default_acl d cross join lateral unnest(d.defaclacl) with ordinality u(item, ord) cross join lateral aclexplode(array[u.item]) a where defaclnamespace = 0 or defaclnamespace::regnamespace::text in ('public','retailos','cms','auth_custom') order by 1,2,3,u.ord`);
+const objWord = { r: "tables", S: "sequences", f: "functions", T: "types" };
+const groups = new Map();
+for (const d of defs) {
+  const k = `${d.r}|${d.ns}|${d.ot}|${d.gid === 0 ? "public" : d.g}`;
+  if (!groups.has(k)) groups.set(k, []);
+  groups.get(k).push(d.p);
+}
+for (const [k, privs] of groups) {
+  const [r, ns, ot, g] = k.split("|");
+  // For a schema-scoped default the owner appears only if it was granted explicitly (Supabase does this), so keep it;
+  // for a global default the owner entry is implicit.
+  if (g === r && ns === "-") continue;
+  add(`alter default privileges for role ${ident(r)}${ns === "-" ? "" : ` in schema ${ident(ns)}`} grant ${privs.join(", ")} on ${objWord[ot]} to ${g === "public" ? "public" : ident(g)}`);
+}
+
+writeFileSync(join(outDir, "schema.sql"), "-- GENERATED from the live catalog (schema only, no data). Do not commit.\nset check_function_bodies = off;\n-- @stmt\n" + stmts.join("\n-- @stmt\n") + "\n");
+
+// ---- live hashes, using the same read-only queries the tests run
+const snap = readFileSync(join(root, "supabase", "retailos", "verify", "snapshot.sql"), "utf8");
+const named = Object.fromEntries([...snap.matchAll(/-- @query (\w+)\n([\s\S]*?)(?=\n-- @query |$)/g)].map((m) => [m[1], m[2].trim().replace(/;\s*$/, "")]));
+const hashes = {};
+for (const [k, sql] of Object.entries(named)) hashes[k] = String((await q(sql))[0].h);
+const inv = {
+  tables: tables.length, views: views.length, functions: fns.length, policies: pols.length, triggers: trgs.length,
+  roles: roles.map((r) => r.r), statements: stmts.length,
+};
+writeFileSync(join(outDir, "live-hashes.json"), JSON.stringify({ hashes, inventory: inv, takenAt: new Date().toISOString() }, null, 2));
+console.log(JSON.stringify({ wrote: ".local/live-clone/{schema.sql,live-hashes.json}", ...inv }));

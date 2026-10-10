@@ -1,0 +1,106 @@
+-- M0011 reports. Three scopes, three permissions:
+--   report_sales_summary    one branch            report.view in that branch
+--   report_tenant_sales     the whole business    report.view at TENANT level (the owner)
+--   report_sales_export     raw rows of a branch  report.export in that branch; always audited
+-- They are SECURITY DEFINER only to run aggregates quickly; each one authorises first.
+
+create or replace function public.report_sales_summary(p_branch uuid, p_from date, p_to date)
+returns jsonb
+language plpgsql stable
+security definer set search_path = ''
+as $$
+declare
+  v_inv record;
+  v_methods jsonb;
+begin
+  perform private.assert_branch_permission(p_branch, 'report.view');
+  if p_from is null or p_to is null or p_to < p_from or p_to - p_from > 366 then perform private.fail('VALIDATION_ERROR'); end if;
+
+  select count(*)::int as n,
+         coalesce(sum((gross_total * 100)::bigint), 0)::bigint as gross,
+         coalesce(sum((discount_total * 100)::bigint), 0)::bigint as disc,
+         coalesce(sum((tax_total * 100)::bigint), 0)::bigint as tax,
+         coalesce(sum((grand_total * 100)::bigint), 0)::bigint as total
+    into v_inv
+    from public.invoices
+   where branch_id = p_branch and business_date between p_from and p_to and status = 'ISSUED';
+
+  select coalesce(jsonb_object_agg(method, paise), '{}'::jsonb) into v_methods from (
+    select p.method, sum((p.amount * 100)::bigint)::bigint as paise
+      from public.payments p join public.invoices i on i.id = p.invoice_id
+     where i.branch_id = p_branch and i.business_date between p_from and p_to
+       and i.status = 'ISSUED' and p.direction = 'IN'
+     group by p.method) m;
+
+  return jsonb_build_object('branchId', p_branch, 'from', p_from, 'to', p_to, 'invoiceCount', v_inv.n,
+    'grossPaise', v_inv.gross, 'discountPaise', v_inv.disc, 'taxPaise', v_inv.tax,
+    'grandTotalPaise', v_inv.total, 'byMethod', v_methods);
+end;
+$$;
+
+-- Business-wide view across all branches. Needs report.view through the TENANT role (the owner,
+-- or someone the owner has explicitly granted it business-wide). A branch manager is refused.
+create or replace function public.report_tenant_sales(p_tenant uuid, p_from date, p_to date)
+returns jsonb
+language plpgsql stable
+security definer set search_path = ''
+as $$
+declare
+  v_rows jsonb;
+begin
+  perform private.assert_tenant_permission(p_tenant, 'report.view');
+  if p_from is null or p_to is null or p_to < p_from or p_to - p_from > 366 then perform private.fail('VALIDATION_ERROR'); end if;
+
+  select coalesce(jsonb_agg(jsonb_build_object(
+           'branchId', b.id, 'branchCode', b.code, 'branchName', b.name,
+           'invoiceCount', coalesce(s.n, 0), 'grandTotalPaise', coalesce(s.total, 0)) order by b.code), '[]'::jsonb)
+    into v_rows
+    from public.branches b
+    left join (
+      select branch_id, count(*)::int as n, sum((grand_total * 100)::bigint)::bigint as total
+        from public.invoices
+       where tenant_id = p_tenant and business_date between p_from and p_to and status = 'ISSUED'
+       group by branch_id) s on s.branch_id = b.id
+   where b.tenant_id = p_tenant;
+
+  return jsonb_build_object('tenantId', p_tenant, 'from', p_from, 'to', p_to, 'branches', v_rows,
+    'grandTotalPaise', (select coalesce(sum((x ->> 'grandTotalPaise')::bigint), 0) from jsonb_array_elements(v_rows) x));
+end;
+$$;
+
+-- Raw invoice rows for an export. Sensitive: needs its own permission and always leaves an audit entry.
+create or replace function public.report_sales_export(p_branch uuid, p_from date, p_to date)
+returns jsonb
+language plpgsql
+security definer set search_path = ''
+as $$
+declare
+  v_tenant uuid;
+  v_rows jsonb;
+  v_count integer;
+begin
+  perform private.assert_branch_permission(p_branch, 'report.export');
+  if p_from is null or p_to is null or p_to < p_from or p_to - p_from > 366 then perform private.fail('VALIDATION_ERROR'); end if;
+  select tenant_id into v_tenant from public.branches where id = p_branch;
+
+  select coalesce(jsonb_agg(jsonb_build_object(
+           'invoiceNumber', i.invoice_number, 'date', i.business_date, 'status', i.status,
+           'grossPaise', (i.gross_total * 100)::bigint, 'discountPaise', (i.discount_total * 100)::bigint,
+           'taxPaise', (i.tax_total * 100)::bigint, 'grandTotalPaise', (i.grand_total * 100)::bigint,
+           'customerName', i.customer_name, 'customerPhone', i.customer_phone) order by i.business_date, i.invoice_number), '[]'::jsonb),
+         count(*)::int
+    into v_rows, v_count
+    from (select * from public.invoices
+           where branch_id = p_branch and business_date between p_from and p_to
+           order by business_date, invoice_number limit 50000) i;
+
+  perform private.write_audit(v_tenant, p_branch, 'report.export', 'report', null, null,
+            jsonb_build_object('report', 'sales', 'from', p_from, 'to', p_to, 'rows', v_count), null, null);
+  return v_rows;
+end;
+$$;
+
+revoke execute on function public.report_sales_summary(uuid, date, date), public.report_tenant_sales(uuid, date, date),
+  public.report_sales_export(uuid, date, date) from public, anon;
+grant execute on function public.report_sales_summary(uuid, date, date), public.report_tenant_sales(uuid, date, date),
+  public.report_sales_export(uuid, date, date) to authenticated;

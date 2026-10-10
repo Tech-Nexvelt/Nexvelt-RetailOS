@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+/* NexVelt palette (UX plan §4.1). Light theme only at launch. */
+:root {
+  --nv-primary: #00d9d9;
+  --nv-primary-strong: #00b8b8;
+  --nv-accent: #35f5ff;
+  --nv-bg: #f8fafc;
+  --nv-surface: #ffffff;
+  --nv-border: #e5e7eb;
+  --nv-text: #111827;
+  --nv-muted: #6b7280;
+  /* Status colours: always paired with an icon and text, never colour alone. */
+  --nv-danger: #b91c1c;
+  --nv-danger-bg: #fef2f2;
+  --nv-success: #15803d;
+  --nv-success-bg: #f0fdf4;
+  --nv-warning: #92400e;
+  --nv-warning-bg: #fffbeb;
+}
+
+@theme inline {
+  --color-primary: var(--nv-primary);
+  --color-primary-strong: var(--nv-primary-strong);
+  --color-accent: var(--nv-accent);
+  --color-app: var(--nv-bg);
+  --color-surface: var(--nv-surface);
+  --color-line: var(--nv-border);
+  --color-ink: var(--nv-text);
+  --color-muted: var(--nv-muted);
+  --color-danger: var(--nv-danger);
+  --color-danger-bg: var(--nv-danger-bg);
+  --color-success: var(--nv-success);
+  --color-success-bg: var(--nv-success-bg);
+  --color-warning: var(--nv-warning);
+  --color-warning-bg: var(--nv-warning-bg);
+  --font-sans: ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --radius-ctl: 8px;
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: var(--nv-bg);
+  color: var(--nv-text);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 3px solid var(--nv-primary-strong);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .nv-transition {
+    transition:
+      background-color 120ms ease,
+      border-color 120ms ease;
+  }
+}
+
+/* Receipt: only the receipt prints (80 mm thermal). */
+.receipt-root {
+  display: none;
+}
+@media print {
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+  body * {
+    visibility: hidden;
+  }
+  .receipt-root,
+  .receipt-root * {
+    visibility: visible;
+  }
+  .receipt-root {
+    display: block;
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 80mm;
+    padding: 4mm;
+    color: #000;
+    background: #fff;
+    font-size: 12px;
+  }
+}

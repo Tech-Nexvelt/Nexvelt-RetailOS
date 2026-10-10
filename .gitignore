@@ -1,0 +1,11 @@
+node_modules
+.next
+.env
+.env.*
+!.env.example
+coverage
+*.tsbuildinfo
+next-env.d.ts
+
+# local-only artifacts (contain the other app's schema; never commit)
+.local

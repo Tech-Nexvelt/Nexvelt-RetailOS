@@ -1,0 +1,90 @@
+-- M0013 void an invoice: the only way a finished sale is ever reversed in this release.
+--
+-- Rules (D-11, pending client confirmation under OQ-34):
+--   * needs sale.void in the invoice's branch;
+--   * only on the same business day, while the cash session that took the sale is still open;
+--   * a written reason is required;
+--   * idempotent, atomic, audited. The invoice keeps its number and is marked VOIDED; nothing is deleted.
+-- Effects: stock returns to the ledger (SALE_VOID), serialized pieces go back to IN_STOCK, and
+-- each payment is reversed by an OUT row so the cash session still reconciles.
+
+create or replace function public.pos_void_invoice(p_invoice uuid, p_reason text, p_idempotency_key uuid)
+returns jsonb
+language plpgsql
+security definer set search_path = ''
+as $$
+declare
+  v_inv public.invoices;
+  v_hash text;
+  v_replay jsonb;
+  v_item record;
+  v_pay record;
+  v_response jsonb;
+  v_session_open boolean;
+begin
+  if (select auth.uid()) is null then perform private.fail('UNAUTHENTICATED'); end if;
+  select * into v_inv from public.invoices where id = p_invoice;
+  if not found then perform private.fail('NOT_FOUND'); end if;
+  perform private.assert_branch_permission(v_inv.branch_id, 'sale.void');
+
+  if p_idempotency_key is null or length(btrim(coalesce(p_reason, ''))) < 3 or length(p_reason) > 300 then
+    perform private.fail('VALIDATION_ERROR', jsonb_build_object('field', 'reason'));
+  end if;
+  perform set_config('lock_timeout', '5s', true);
+
+  v_hash := encode(sha256(convert_to(jsonb_build_object('i', p_invoice, 'r', btrim(p_reason))::text, 'UTF8')), 'hex');
+  v_replay := private.idem_begin(v_inv.tenant_id, 'void', p_idempotency_key, v_hash);
+  if v_replay is not null then return v_replay || jsonb_build_object('replayed', true); end if;
+
+  -- lock the invoice first, then re-read it under the lock
+  select * into v_inv from public.invoices where id = p_invoice for update;
+  if v_inv.status = 'VOIDED' then perform private.fail('ALREADY_VOIDED'); end if;
+  if v_inv.business_date <> private.branch_today(v_inv.branch_id) then perform private.fail('VOID_WINDOW_PASSED'); end if;
+  select (status = 'OPEN') into v_session_open from public.cash_sessions where id = v_inv.cash_session_id for share;
+  if not coalesce(v_session_open, false) then perform private.fail('VOID_WINDOW_PASSED'); end if;
+
+  -- same lock order as checkout: serialized pieces, then stock rows
+  perform 1 from public.jewellery_items
+   where id in (select jewellery_item_id from public.invoice_items where invoice_id = p_invoice and jewellery_item_id is not null)
+   order by id for update;
+  perform 1 from public.inventory_balances
+   where branch_id = v_inv.branch_id
+     and variant_id in (select variant_id from public.invoice_items where invoice_id = p_invoice and variant_id is not null)
+   order by variant_id for update;
+
+  update public.invoices
+     set status = 'VOIDED', voided_at = now(), voided_by = (select auth.uid()), void_reason = btrim(p_reason)
+   where id = p_invoice;
+  update public.invoice_items set line_status = 'VOIDED' where invoice_id = p_invoice;
+
+  for v_item in select * from public.invoice_items where invoice_id = p_invoice order by line_no loop
+    if v_item.variant_id is not null then
+      perform private.apply_variant_movement(v_inv.tenant_id, v_inv.branch_id, v_item.variant_id, v_item.quantity,
+              'SALE_VOID', 'INVOICE', p_invoice, 'VOID', null, v_inv.business_date);
+    else
+      update public.jewellery_items set status = 'IN_STOCK', sold_invoice_item_id = null
+       where id = v_item.jewellery_item_id and status = 'SOLD';
+      perform private.apply_item_movement(v_inv.tenant_id, v_inv.branch_id, v_item.jewellery_item_id, 1,
+              'SALE_VOID', 'INVOICE', p_invoice, v_inv.business_date);
+    end if;
+  end loop;
+
+  for v_pay in select * from public.payments where invoice_id = p_invoice and direction = 'IN' order by recorded_at loop
+    insert into public.payments (tenant_id, branch_id, cash_session_id, invoice_id, direction, purpose, reverses_payment_id,
+                                 method, amount, recorded_by)
+      values (v_inv.tenant_id, v_inv.branch_id, v_inv.cash_session_id, p_invoice, 'OUT', 'VOID_REVERSAL', v_pay.id,
+              v_pay.method, v_pay.amount, (select auth.uid()));
+  end loop;
+
+  perform private.write_audit(v_inv.tenant_id, v_inv.branch_id, 'invoice.void', 'invoice', p_invoice, null,
+            jsonb_build_object('invoiceNumber', v_inv.invoice_number, 'grandTotalPaise', (v_inv.grand_total * 100)::bigint),
+            btrim(p_reason), null);
+
+  v_response := jsonb_build_object('invoiceId', p_invoice, 'invoiceNumber', v_inv.invoice_number, 'status', 'VOIDED', 'replayed', false);
+  perform private.idem_complete(v_inv.tenant_id, 'void', p_idempotency_key, v_response);
+  return v_response;
+end;
+$$;
+
+revoke execute on function public.pos_void_invoice(uuid, text, uuid) from public, anon;
+grant execute on function public.pos_void_invoice(uuid, text, uuid) to authenticated;
