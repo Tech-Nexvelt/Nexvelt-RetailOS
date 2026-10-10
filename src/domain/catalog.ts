@@ -18,6 +18,10 @@ export interface CatalogRow {
   reorderLevel: number | null;
   /** Printed maximum retail price in paise, when known. Never below the selling price (the database enforces it). */
   mrpPaise: number | null;
+  /** Storage key of this item's photo (the product's, or the jewellery design's), or null. Resolved to a signed URL on the server. */
+  imagePath: string | null;
+  /** The record the photo belongs to: the product (clothing) or the jewellery design. */
+  imageOwnerId: string | null;
 }
 
 /** Stock is low when a reorder level is set, there is still some stock, and it is at or below that level. */

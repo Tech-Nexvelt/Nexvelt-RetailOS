@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { EditItem } from "@/components/products/edit-item";
+import { ImageUploader } from "@/components/products/image-uploader";
+import { signedUrls, type ImageClient } from "@/server/app/images";
 import { getCatalogRow, listMovements } from "@/server/app/catalog";
 import { requireSession } from "@/server/app/session";
 
@@ -25,11 +27,13 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
   if (!row) notFound();
   // read-only ledger view; the database decides whether this person may see it (inventory.view)
   const movements = row.kind === "VARIANT" ? await listMovements(s, row.id) : null;
+  const photo = s.client && row.imagePath ? ((await signedUrls(s.client as unknown as ImageClient, s.tenantId, [row.imagePath])).get(row.imagePath) ?? null) : null;
   const when = (iso: string) => new Date(iso).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" });
   return (
     <div className="flex flex-col gap-4">
       <Link href="/products" className="text-sm text-primary-strong underline">← All products</Link>
       <h1 className="text-2xl font-bold tracking-tight">Edit product</h1>
+      <ImageUploader kind={row.kind} id={row.id} name={row.name} url={photo} canEdit={can("product.edit") && s.mode !== "demo"} />
       <EditItem row={row} canPrice={can("product.price_edit")} canEdit={can("product.edit")} canAdjust={can("inventory.adjust")} />
       {row.kind === "VARIANT" && movements !== null ? (
         <section aria-label="Stock history" className="flex max-w-3xl flex-col gap-2">

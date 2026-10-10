@@ -25,15 +25,17 @@ export async function listCatalog(s: AppSession, query: string): Promise<Catalog
         active: i.active,
         reorderLevel: null,
         mrpPaise: null,
+        imagePath: null,
+        imageOwnerId: null,
       }))
       .filter((r) => matches(r, q));
   }
   const db = s.client!;
   const [products, variants, items, designs, codes, balances] = await Promise.all([
-    db.from("products").select("id, name").limit(2000),
+    db.from("products").select("id, name, image_path").limit(2000),
     db.from("product_variants").select("id, product_id, size_label, colour_label, selling_price, is_active, mrp, reorder_level").limit(5000),
     db.from("jewellery_items").select("id, design_id, tag_code, tag_price, status, is_active").eq("branch_id", s.branchId).limit(5000),
-    db.from("jewellery_designs").select("id, name").limit(2000),
+    db.from("jewellery_designs").select("id, name, image_path").limit(2000),
     db.from("barcode_aliases").select("code, variant_id, jewellery_item_id").eq("is_primary", true).eq("is_active", true).limit(10000),
     db.from("inventory_balances").select("variant_id, on_hand").eq("branch_id", s.branchId).limit(5000),
   ]);
@@ -42,6 +44,8 @@ export async function listCatalog(s: AppSession, query: string): Promise<Catalog
   const stockOf = new Map((balances.data ?? []).map((b) => [b.variant_id as string, b.on_hand as number]));
   const stockKnown = !balances.error;
   const name = new Map((products.data ?? []).map((p) => [p.id as string, p.name as string]));
+  const pimg = new Map((products.data ?? []).map((p) => [p.id as string, (p.image_path as string | null) ?? null]));
+  const dimg = new Map((designs.data ?? []).map((d) => [d.id as string, (d.image_path as string | null) ?? null]));
   const dname = new Map((designs.data ?? []).map((d) => [d.id as string, d.name as string]));
   const code = new Map<string, string>();
   for (const c of codes.data ?? []) code.set((c.variant_id ?? c.jewellery_item_id) as string, c.code as string);
@@ -61,6 +65,8 @@ export async function listCatalog(s: AppSession, query: string): Promise<Catalog
         active: Boolean(v.is_active),
         reorderLevel: v.reorder_level === null || v.reorder_level === undefined ? null : Number(v.reorder_level),
         mrpPaise: v.mrp === null || v.mrp === undefined ? null : toPaise(v.mrp),
+        imagePath: pimg.get(v.product_id as string) ?? null,
+        imageOwnerId: v.product_id as string,
       };
     }),
     ...(items.data ?? []).map<CatalogRow>((i) => ({
@@ -75,6 +81,8 @@ export async function listCatalog(s: AppSession, query: string): Promise<Catalog
       active: Boolean(i.is_active),
       reorderLevel: null,
       mrpPaise: null,
+      imagePath: dimg.get(i.design_id as string) ?? null,
+      imageOwnerId: i.design_id as string,
     })),
   ];
   return rows.filter((r) => matches(r, q)).sort((a, b) => a.name.localeCompare(b.name) || a.detail.localeCompare(b.detail));

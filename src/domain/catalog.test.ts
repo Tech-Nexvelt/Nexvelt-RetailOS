@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_QUERY, isLowStock, isOutOfStock, parseCatalogQuery, queryCatalog, type CatalogRow } from "./catalog";
 
 const row = (over: Partial<CatalogRow> & { id: string }): CatalogRow => ({
-  kind: "VARIANT", name: "Shirt", detail: "M / Blue", barcode: "8901230000018", pricePaise: 129900, stock: 5, status: "In stock", active: true, reorderLevel: null, mrpPaise: null, ...over,
+  kind: "VARIANT", name: "Shirt", detail: "M / Blue", barcode: "8901230000018", pricePaise: 129900, stock: 5, status: "In stock", active: true, reorderLevel: null, mrpPaise: null, imagePath: null, imageOwnerId: null, ...over,
 });
 
 describe("low-stock and out-of-stock rules", () => {

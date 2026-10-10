@@ -6,6 +6,8 @@ import { isLowStock, isOutOfStock, parseCatalogQuery, queryCatalog, type Catalog
 import { formatINR } from "@/domain/money";
 import { requireSession } from "@/server/app/session";
 import { listCatalog } from "@/server/app/catalog";
+import { ProductThumb } from "@/components/products/product-thumb";
+import { signedUrls, type ImageClient } from "@/server/app/images";
 
 export const metadata = { title: "Products & Stock" };
 export const dynamic = "force-dynamic";
@@ -45,6 +47,8 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
   }
   const { rows, total, page, pages } = queryCatalog(all, query);
   const lowCount = all.filter(isLowStock).length;
+  // one batch of short-lived signed URLs for the photos on THIS page only (placeholders when there is no photo or no database)
+  const photos = s.client ? await signedUrls(s.client as unknown as ImageClient, s.tenantId, rows.map((r) => r.imagePath)) : new Map<string, string>();
   const canCreate = s.permissions.has("product.create");
   const canEdit = s.permissions.has("product.edit") || s.permissions.has("product.price_edit") || s.permissions.has("inventory.adjust");
   const filtered = query.status !== "all" || query.kind !== "all" || q !== "";
@@ -116,6 +120,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
             <table className="w-full text-left">
               <thead className="border-b border-line bg-app text-sm text-muted">
                 <tr>
+                  <th className="w-16 p-3"><span className="sr-only">Photo</span></th>
                   <th className="p-3">{sortLink("name", "Product")}</th>
                   <th className="p-3">Size / tag</th>
                   <th className="p-3">Barcode</th>
@@ -130,6 +135,7 @@ export default async function ProductsPage({ searchParams }: { searchParams: Pro
                   const out = isOutOfStock(r);
                   return (
                     <tr key={r.id} className="border-b border-line last:border-b-0">
+                      <td className="p-3"><ProductThumb url={r.imagePath ? (photos.get(r.imagePath) ?? null) : null} name={r.name} size={44} /></td>
                       <td className="p-3 font-medium">{canEdit ? <Link className="text-primary-strong underline" href={`/products/${r.id}`}>{r.name}</Link> : r.name}</td>
                       <td className="p-3">{r.detail}</td>
                       <td className="p-3 font-mono text-sm">{r.barcode || "—"}</td>
