@@ -17,7 +17,11 @@ Nothing in this file is applied by Claude: you run the migration. The verificati
 cd E:\Softwares\NexveltretailOS
 npm run retailos:manifest:check          # must print: Manifest OK (21 files)
 (Get-FileHash supabase\retailos\MANIFEST.sha256 -Algorithm SHA256).Hash.Substring(0,12).ToLower()   # must be ab468e4fbed8
-cd supabase\retailos\migrations; sha256sum -c SHA256SUMS; cd ..\..\..   # 16 lines ending OK (Git Bash / WSL)
+# each of the 16 migrations against SHA256SUMS (PowerShell has no sha256sum):
+$bad=0; $n=0; Get-Content supabase\retailos\migrations\SHA256SUMS | Where-Object { $_.Trim() } | ForEach-Object {
+  $h,$f = $_.Trim() -split '\s+',2; $f=$f.TrimStart('*'); $n++
+  if ((Get-FileHash "supabase\retailos\migrations\$f" -Algorithm SHA256).Hash.ToLower() -ne $h) { $bad++; "DIFFERS  $f" } }
+"checked $n migrations, $bad differ"        # must print: checked 16 migrations, 0 differ
 ```
 Stop if any line differs. Do not edit a migration, `rollback.sql`, `bootstrap/first-tenant.sql` or anything in `verify/`: they are hash-pinned.
 
