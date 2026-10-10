@@ -89,7 +89,7 @@ try {
   await client.end().catch(() => {});
 }
 // 5. Data API exposure (needs the Management API token; read-only GET)
-const token = env.SUPABASE_ACCESS_TOKEN ?? "";
+const token = process.argv.includes("--db-only") ? "" : (env.SUPABASE_ACCESS_TOKEN ?? "");
 if (token) {
   const res = await fetch(`https://api.supabase.com/v1/projects/${ref}/postgrest`, { headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(20000) });
   if (res.ok) {
@@ -99,6 +99,6 @@ if (token) {
     gate("Data API exposes 'retailos'", schemas.includes("retailos"), schemas.includes("retailos") ? "" : "dashboard action still required");
     gate("Data API does NOT expose 'retailos_private'", !schemas.includes("retailos_private"));
   } else console.log(`BLOCKED  Data API setting could not be read (HTTP ${res.status})`);
-} else console.log("BLOCKED  Data API exposure not checked: no SUPABASE_ACCESS_TOKEN in this process");
+} else console.log("BLOCKED  Data API exposure not checked (no Management API access in this run); verify 'retailos' exposure in the dashboard");
 console.log(failed ? "\nVERIFICATION FAILED." : "\nVERIFICATION PASSED for everything that ran.");
 process.exit(failed ? 1 : 0);

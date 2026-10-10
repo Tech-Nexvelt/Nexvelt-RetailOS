@@ -35,10 +35,12 @@ const stop = (msg) => {
 const ref = env.RETAILOS_SUPABASE_PROJECT_REF ?? "";
 const other = env.TIRUMALA_SUPABASE_PROJECT_REF ?? "";
 const dbUrl = env.RETAILOS_DATABASE_URL ?? "";
-const token = env.SUPABASE_ACCESS_TOKEN ?? "";
+const dbOnly = process.argv.includes("--db-only"); // never reads or uses the Management API token
+const token = dbOnly ? "" : (env.SUPABASE_ACCESS_TOKEN ?? "");
 gate("RETAILOS_SUPABASE_PROJECT_REF is set and well-formed", /^[a-z0-9]{20}$/.test(ref), ref ? "" : "MISSING");
 console.log(other ? "INFO  Tirumala ref provided: used for string comparison only" : "INFO  project separation: owner-confirmed (no Tirumala ref supplied; string comparison skipped)");
-gate("SUPABASE_ACCESS_TOKEN is set", token.length > 20, token ? "(value not shown)" : "MISSING");
+if (dbOnly) console.log("INFO  --db-only: Management API identity check SKIPPED by request; identity rests on the connection string carrying the project ref plus the empty-target guard");
+else gate("SUPABASE_ACCESS_TOKEN is set", token.length > 20, token ? "(value not shown)" : "MISSING");
 gate("RETAILOS_DATABASE_URL is set", dbUrl.length > 20, dbUrl ? "(value not shown)" : "MISSING");
 if (failed) stop("configuration incomplete");
 if (other) gate("new ref differs from the Tirumala ref", ref !== other);
@@ -80,7 +82,7 @@ gate("migration order: guard first, marker last, 16 files", migs[0].startsWith("
 if (failed) stop("manifest/migration integrity");
 
 // 3. Management API identity (one read-only GET of the new project)
-try {
+if (!dbOnly) try {
   const res = await fetch(`https://api.supabase.com/v1/projects/${ref}`, { headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(20000) });
   if (!gate("Management API can read the new project (token valid for it)", res.ok, `HTTP ${res.status}`)) stop("cannot verify project identity");
   const p = await res.json();
