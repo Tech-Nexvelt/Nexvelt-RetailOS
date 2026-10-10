@@ -27,9 +27,20 @@ export interface PublicEnv {
   siteUrl: string;
 }
 
-/** Returns the public configuration, or null when Supabase is not configured. */
+/**
+ * The browser-safe variables, read by LITERAL name. Next.js only inlines NEXT_PUBLIC_* into browser code for literal
+ * `process.env.NEXT_PUBLIC_X` references; passing the whole `process.env` object works on the server but yields nothing in the browser.
+ */
+const literalPublicEnv = (): Record<string, string | undefined> => ({
+  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+});
+
+/** Returns the public configuration, or null when Supabase is not configured. Works on the server AND in the browser. */
 export function publicEnv(
-  source: Record<string, string | undefined> = process.env,
+  source: Record<string, string | undefined> = literalPublicEnv(),
 ): PublicEnv | null {
   const parsed = publicSchema.safeParse({
     NEXT_PUBLIC_SUPABASE_URL: source.NEXT_PUBLIC_SUPABASE_URL,

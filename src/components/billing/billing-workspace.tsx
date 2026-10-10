@@ -20,6 +20,8 @@ import type {
 } from "@/domain/billing";
 import { BILLING_ERRORS } from "@/domain/errors";
 import { formatINR, parseRupees, type Paise } from "@/domain/money";
+import type { AckStatus } from "@/lib/scanner/protocol";
+import { PhoneScannerPanel, type ScannerApi } from "./phone-scanner-panel";
 import { PrintableReceipt, ReceiptView, receiptFromInvoice, type Business } from "./receipt";
 
 /** The server actions this screen calls. Injected so the screen can be tested without a server. */
@@ -41,6 +43,8 @@ export interface BillingApi {
 
 interface Props {
   api: BillingApi;
+  /** Phone scanner server calls. When absent the Phone scanner panel is not shown. */
+  scanner?: ScannerApi;
   business: Business;
   /** Whether this person may give discounts at all. The server decides again on every request. */
   canDiscount: boolean;
@@ -60,7 +64,7 @@ const toInput = (l: QuotedLine): CartLineInput => ({
   ...(l.discountPaise > 0 ? { discountPaise: l.discountPaise, discountReason: l.discountReason ?? "" } : {}),
 });
 
-export function BillingWorkspace({ api, business, canDiscount, demo, newKey = () => crypto.randomUUID() }: Props) {
+export function BillingWorkspace({ api, scanner, business, canDiscount, demo, newKey = () => crypto.randomUUID() }: Props) {
   const scanRef = useRef<HTMLInputElement>(null);
   const [session, setSession] = useState<SessionState | null>(null);
   const [float, setFloat] = useState("");
@@ -87,6 +91,17 @@ export function BillingWorkspace({ api, business, canDiscount, demo, newKey = ()
 
   const cartInput = useMemo(() => lines.map(toInput), [lines]);
   const locked = phase === "submitting" || phase === "uncertain" || phase === "done";
+
+  // ---- phone scanner: barcodes from a paired phone enter the SAME scanBarcode + cart path, one at a time --------------------
+  const lockedRef = useRef(locked);
+  const cartRef = useRef<CartLineInput[]>([]);
+  const scanQueue = useRef<Promise<unknown>>(Promise.resolve());
+  useEffect(() => {
+    lockedRef.current = locked;
+  }, [locked]);
+  useEffect(() => {
+    cartRef.current = cartInput;
+  }, [cartInput]);
 
   // ---- session, focus, connectivity ----------------------------------------------------------
   useEffect(() => {
@@ -154,6 +169,32 @@ export function BillingWorkspace({ api, business, canDiscount, demo, newKey = ()
       setBusy(false);
     }
   }, []);
+
+  /**
+   * A barcode that arrived from the paired phone. Jobs run strictly one after another and each starts from the cart the previous job
+   * produced, so two quick scans never overwrite each other. While a checkout is running (or the bill is finished) nothing is added.
+   * A phone scan never completes a bill, records a payment or changes stock: it only quotes the cart, exactly like typing the code.
+   */
+  const remoteScan = useCallback(
+    (code: string): Promise<AckStatus> => {
+      const job = scanQueue.current.then(async (): Promise<AckStatus> => {
+        if (lockedRef.current) return "paused";
+        const r = await run(() => api.scanBarcode(code, cartRef.current));
+        if (r.ok) {
+          cartRef.current = r.data.lines.map(toInput); // the next queued scan starts from this cart, not a stale render
+          applyQuote(r.data);
+          return "added";
+        }
+        setMessage({ tone: "warning", text: `Phone scan ${code}: ${BILLING_ERRORS[r.code].title} ${BILLING_ERRORS[r.code].fix}` });
+        if (r.code === "BARCODE_NOT_FOUND") return "unknown";
+        if (r.code === "NETWORK") return "error";
+        return "unavailable";
+      });
+      scanQueue.current = job.catch(() => undefined);
+      return job;
+    },
+    [api, applyQuote, run],
+  );
 
   const onScan = async () => {
     const value = scan.trim();
@@ -385,6 +426,8 @@ export function BillingWorkspace({ api, business, canDiscount, demo, newKey = ()
         </div>
 
         <div aria-live="polite">{message ? <Banner tone={message.tone}>{message.text}</Banner> : null}</div>
+
+        {scanner ? <PhoneScannerPanel api={scanner} onScan={remoteScan} accepting={!locked} /> : null}
 
         {results.length > 0 ? (
           <ul aria-label="Matching products" className="max-h-72 overflow-auto rounded-ctl border border-line bg-surface">

@@ -110,3 +110,20 @@ describe("safeNextPath", () => {
     }
   });
 });
+
+describe("publicEnv default source (browser bundles only inline literal NEXT_PUBLIC_ names)", () => {
+  it("reads the public variables from process.env by literal name when no source is passed", () => {
+    const saved = { u: process.env.NEXT_PUBLIC_SUPABASE_URL, k: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, s: process.env.NEXT_PUBLIC_SITE_URL };
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://abcdefghijklmnopqrst.supabase.co";
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_" + "x".repeat(30);
+    process.env.NEXT_PUBLIC_SITE_URL = "https://app.example.com/";
+    try {
+      expect(publicEnv()).toEqual({ supabaseUrl: "https://abcdefghijklmnopqrst.supabase.co", supabaseKey: "sb_publishable_" + "x".repeat(30), siteUrl: "https://app.example.com" });
+    } finally {
+      for (const [k, v] of [["NEXT_PUBLIC_SUPABASE_URL", saved.u], ["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", saved.k], ["NEXT_PUBLIC_SITE_URL", saved.s]] as const) {
+        if (v === undefined) delete process.env[k];
+        else process.env[k] = v;
+      }
+    }
+  });
+});

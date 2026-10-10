@@ -1,5 +1,6 @@
 import { BillingWorkspace } from "@/components/billing/billing-workspace";
 import { getBusiness } from "@/server/app/business";
+import { createPairingAction, verifyIncomingAction } from "@/server/scanner/actions";
 import { requireSession } from "@/server/app/session";
 import {
   addItem,
@@ -22,6 +23,7 @@ export default async function BillingPage() {
   return (
     <BillingWorkspace
       api={{ getSession, startDay, scanBarcode, searchItems, addItem, quoteCart, completeCheckout }}
+      scanner={{ createPairing: createPairingAction, verifyIncoming: verifyIncomingAction }}
       business={business}
       canDiscount={canDiscount}
       demo={s.mode === "demo"}

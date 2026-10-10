@@ -58,6 +58,11 @@ export function checkEnv(env, production = false) {
   else if (sec === pub) add(secName, false, "INVALID: identical to the public key");
   else add(secName, secOk, secOk ? "OK (server-only secret)" : "INVALID: not a secret/service-role key");
 
+  // Phone scanner (optional feature): when the signing secret is absent the feature stays off (fail closed); when present it must be strong.
+  const scan = env.SCANNER_PAIRING_SECRET;
+  if (!scan) add("SCANNER_PAIRING_SECRET", true, "not set: the phone scanner is OFF (set a 32+ character random value to enable it)");
+  else add("SCANNER_PAIRING_SECRET", scan.length >= 32 && scan !== sec && scan !== pub, scan.length >= 32 ? "OK (server-only signing secret)" : "INVALID: shorter than 32 characters");
+
   const exposed = Object.keys(env).filter((k) => k.startsWith("NEXT_PUBLIC_") && /(service[_-]?role|secret|private[_-]?key|password|jwt[_-]?secret)/i.test(k));
   add("no secret-looking NEXT_PUBLIC_ variable", exposed.length === 0, exposed.length ? `DANGER: ${exposed.join(", ")} would be shipped to browsers` : "OK");
   return r;

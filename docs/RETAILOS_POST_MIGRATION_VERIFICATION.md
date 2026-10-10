@@ -180,3 +180,11 @@ Run in order, after A–F pass. Record each result; do not mark a step done unle
 * Not built as screens (database functions exist for some): voiding a bill, metal-rate management, category management, archiving products, stock/low-stock reports, exports, tax reports.
 * Security headers: `nosniff`, `Referrer-Policy`, `X-Frame-Options: DENY`, `Permissions-Policy` and `Strict-Transport-Security: max-age=31536000` (this host only) are set. There is **no Content-Security-Policy**: it needs testing against the running app before enabling. Login throttling relies on Supabase Auth's own limits (C6); the app only relays the "Too many attempts" response.
 * Hygiene still owed by you: reset the database password that was exposed in chat and revoke any access token ever pasted into chat.
+
+---
+## Part I — Phone scanner (optional feature; no migration needed)
+Full description, security controls, configuration and an honest test matrix: **`docs/RETAILOS_PHONE_SCANNER.md`**.
+* **Enable:** set the server-only variable `SCANNER_PAIRING_SECRET` (32+ random characters, different per environment) in the hosting platform. Without it the Connect button explains that the scanner is not set up. `npm run env:check` reports it.
+* **Needs https:** a phone browser will not open the camera on an `http://` address.
+* **Hosted test you can repeat without a phone (two browser tabs):** Billing -> Phone scanner -> Connect -> copy the link -> open it in a second tab -> Connect -> expect "Connected" on both -> use "Type a barcode instead" on the second tab -> the item appears in the Billing cart.
+* **Still to do on your side:** a real phone scanning real barcodes over https (not verified; the camera path is covered only by mocked tests).
