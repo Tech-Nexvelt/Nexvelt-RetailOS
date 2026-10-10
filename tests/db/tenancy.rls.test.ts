@@ -28,7 +28,7 @@ const count = async (client: Client, sql: string, params: unknown[] = []) =>
 describe("migrations", () => {
   it("every table in the public schema has RLS enabled", async () => {
     const r = await c.query(
-      "select relname from pg_class where relnamespace = 'retailos'::regnamespace and left(relname, 9) <> 'retailos_' and relkind = 'r' and not relrowsecurity",
+      "select relname from pg_class where relnamespace = 'retailos'::regnamespace and relkind = 'r' and not relrowsecurity",
     );
     expect(r.rows.map((x) => x.relname)).toEqual([]);
   });
@@ -36,7 +36,7 @@ describe("migrations", () => {
   it("the anon role holds no privilege on any public table", async () => {
     const r = await c.query(
       `select table_name, privilege_type from information_schema.role_table_grants
-       where grantee = 'anon' and table_schema = 'retailos' and left(table_name, 9) <> 'retailos_'`,
+       where grantee = 'anon' and table_schema = 'retailos'`,
     );
     expect(r.rows).toEqual([]);
   });
@@ -359,10 +359,7 @@ describe("membership and role integrity", () => {
       [
         JSON.stringify({
           full_name: "Evil",
-          // Tirumala's trigger copies this into public.profiles.role, whose real check allows only admin/cashier;
-          // any other value would make the sign-up itself fail. "admin" is the value an attacker would pick.
-          role: "admin",
-          tenant_role: "tenant_owner",
+          role: "tenant_owner",
           tenant_id: w.tenantA,
           is_admin: true,
         }),
@@ -377,6 +374,8 @@ describe("membership and role integrity", () => {
     expect(
       await count(c, "select count(*)::int n from retailos.platform_admins where user_id = $1", [id]),
     ).toBe(0);
+    // Signing up creates no RetailOS profile either: a profile appears only when someone is given access.
+    expect(await count(c, "select count(*)::int n from retailos.profiles where id = $1", [id])).toBe(0);
     await probe(c, id, async (x) => {
       expect(await count(x, "select count(*)::int n from retailos.tenants")).toBe(0);
       expect(await count(x, "select count(*)::int n from retailos.branches")).toBe(0);

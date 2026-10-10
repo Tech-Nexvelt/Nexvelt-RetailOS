@@ -43,6 +43,7 @@
   ],
   "exclude": [
     "node_modules",
-    "ui-prototype-archive"
+    "ui-prototype-archive",
+    "archive"
   ]
 }

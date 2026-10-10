@@ -14,7 +14,6 @@
     "test": "vitest run",
     "format": "prettier --write .",
     "test:db": "vitest run -c vitest.db.config.mts",
-    "test:db:clone": "node scripts/test-db-clone.mjs",
     "migrations:seal": "node scripts/seal-migrations.mjs",
     "retailos:port": "node scripts/port-to-retailos.mjs && node scripts/seal-migrations.mjs supabase/retailos/migrations",
     "retailos:seal": "node scripts/seal-migrations.mjs supabase/retailos/migrations",

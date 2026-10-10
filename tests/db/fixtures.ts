@@ -6,8 +6,8 @@ export async function createUser(admin: Client, email: string, fullName = ""): P
     "insert into auth.users (email, raw_user_meta_data) values ($1, $2) returning id",
     [email, JSON.stringify({ full_name: fullName })],
   );
-  // RetailOS no longer owns a trigger on auth.users (Tirumala's trigger is untouched), so the profile
-  // row that the old trigger created is created explicitly here, as the membership functions do.
+  // RetailOS adds no trigger on auth.users (a sign-up alone grants nothing). A profile is created explicitly,
+  // exactly as the membership functions do it when someone is given access.
   await admin.query("select retailos_private.ensure_profile($1)", [r.rows[0].id]);
   return r.rows[0].id as string;
 }
@@ -137,39 +137,4 @@ export async function buildWorld(admin: Client, tag = uniqueTag()): Promise<Worl
     outsider,
     platformAdmin,
   };
-}
-
-/**
- * Insert one row into ANOTHER app's table (schema.table) without knowing its exact shape: any NOT NULL
- * column without a default that the caller did not give is filled with a harmless dummy by data type.
- * Lets the same isolation tests run on the hand-made fixture and on the clone of the live Tirumala schema.
- */
-export async function insertFilled(admin: Client, table: string, values: Record<string, unknown> = {}): Promise<string> {
-  const [schema, name] = table.split(".") as [string, string];
-  const cols = await admin.query(
-    `select column_name, data_type from information_schema.columns
-     where table_schema = $1 and table_name = $2 and is_nullable = 'NO' and column_default is null
-       and is_identity = 'NO' and is_generated = 'NEVER'`,
-    [schema, name],
-  );
-  const row: Record<string, unknown> = { ...values };
-  let n = 0;
-  for (const c of cols.rows as { column_name: string; data_type: string }[]) {
-    if (c.column_name in row) continue;
-    const t = c.data_type;
-    row[c.column_name] =
-      t === "uuid" ? crypto.randomUUID()
-      : t === "boolean" ? false
-      : /int|numeric|real|double|decimal/.test(t) ? 1
-      : /timestamp|date/.test(t) ? new Date().toISOString()
-      : /json/.test(t) ? "{}"
-      : t === "ARRAY" ? []
-      : `t${Date.now().toString(36)}${(n++).toString(36)}`;
-  }
-  const keys = Object.keys(row);
-  const r = await admin.query(
-    `insert into ${schema}.${name} (${keys.map((k) => '"' + k + '"').join(",")}) values (${keys.map((_, i) => "$" + (i + 1)).join(",")}) returning id`,
-    keys.map((k) => row[k]),
-  );
-  return r.rows[0].id as string;
 }

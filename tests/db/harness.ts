@@ -1,13 +1,14 @@
 /**
  * Database test harness.
  *
- * Starts a REAL PostgreSQL 17 server (embedded-postgres, an ordinary user-mode process; no Docker)
- * and applies, in order: tests/db/shim.sql (Supabase-compatible roles and auth schema),
- * tests/db/prodlike.sql (a RECONSTRUCTION of the live Tirumala + deployed retailos shape, audited
- * read-only on 2026-10-10), then every file in supabase/retailos/migrations. It is NOT Supabase itself
- * and NOT the live database: passing here does not prove the live project accepts the migrations. What it proves: constraints, RLS,
- * functions, transactions, rollback and true multi-connection concurrency on PostgreSQL 17.
- * What it does not prove: Supabase Auth, PostgREST, Storage, or the hosted environment.
+ * Starts a REAL PostgreSQL 17 server (embedded-postgres, an ordinary user-mode process; no Docker) and
+ * applies, in order: tests/db/shim.sql (Supabase-compatible roles, auth schema, default privileges),
+ * an optional fixture, then every file in supabase/retailos/migrations. The default is a FRESH database,
+ * the same starting point as a brand-new dedicated Supabase project.
+ *
+ * It is NOT Supabase. What it proves: constraints, RLS, functions, transactions, rollback and true
+ * multi-connection concurrency on PostgreSQL 17. What it does not prove: Supabase Auth, PostgREST, the Data
+ * API schema exposure, email, Storage, or hosted-platform behaviour.
  */
 import EmbeddedPostgres from "embedded-postgres";
 import { Client } from "pg";
@@ -38,50 +39,18 @@ async function freePort(): Promise<number> {
   });
 }
 
-/**
- * DB_BASE=live-clone: replay the schema extracted READ-ONLY from the live project
- * (scripts/clone-live-schema.mjs -> .local/live-clone/schema.sql, git-ignored) instead of the hand-made
- * tests/db/prodlike.sql. The shim's own default privileges are dropped because the live ones come from the clone.
- * Statements that fail are retried (views depend on each other) until no progress is made.
- */
-async function loadLiveClone(admin: Client, shim: string) {
-  const file = path.join(ROOT, ".local", "live-clone", "schema.sql");
-  if (!fs.existsSync(file)) throw new Error("DB_BASE=live-clone needs .local/live-clone/schema.sql (run scripts/clone-live-schema.mjs)");
-  await admin.query(
-    shim
-      .split(String.fromCharCode(10))
-      .filter((l) => !/^alter default privileges/i.test(l) && !/^grant usage on schema public/i.test(l))
-      .join(String.fromCharCode(10)),
-  );
-  // Stand-in for the live uuid-ossp extension (the only extension function the live schema references).
-  await admin.query(
-    "create schema if not exists extensions; create or replace function extensions.uuid_generate_v4() returns uuid language sql as 'select gen_random_uuid()'",
-  );
-  let pending = fs
-    .readFileSync(file, "utf8")
-    .split(/^-- @stmt$/m)
-    .map((x) => x.trim())
-    .filter(Boolean);
-  for (let pass = 0; pending.length && pass < 8; pass++) {
-    const failed: { sql: string; err: string }[] = [];
-    for (const sql of pending) {
-      try {
-        await admin.query(sql);
-      } catch (e) {
-        failed.push({ sql, err: (e as Error).message });
-      }
-    }
-    if (failed.length === pending.length || pass === 7) {
-      if (failed.length) {
-        const msg = failed.slice(0, 5).map((f) => f.err + " :: " + f.sql.slice(0, 120)).join(String.fromCharCode(10));
-        throw new Error("live clone could not be replayed (" + failed.length + " statements): " + msg);
-      }
-    }
-    pending = failed.map((f) => f.sql);
-  }
+export interface StartOptions {
+  /** Apply supabase/retailos/migrations (default true). */
+  migrations?: boolean;
+  /**
+   * An extra SQL file (path relative to tests/db) applied after the Supabase shim and before the migrations.
+   * Only for tests that need a deliberately unsuitable target, e.g. a database that already holds another
+   * application. The default is a fresh, empty Supabase-like database.
+   */
+  fixture?: string;
 }
 
-export async function startDb(options: { migrations?: boolean } = {}): Promise<TestDb> {
+export async function startDb(options: StartOptions = {}): Promise<TestDb> {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "nxr-pg-"));
   const port = await freePort();
   const server = new EmbeddedPostgres({
@@ -90,7 +59,7 @@ export async function startDb(options: { migrations?: boolean } = {}): Promise<T
     password: "postgres",
     port,
     persistent: false,
-    // The live Supabase database is UTF-8; the Windows default (WIN1252) cannot even store the rupee sign.
+    // Supabase databases are UTF-8; the Windows default (WIN1252) cannot even store the rupee sign.
     initdbFlags: ["--encoding=UTF8", "--locale=C"],
     onLog: () => {},
     onError: () => {},
@@ -110,36 +79,32 @@ export async function startDb(options: { migrations?: boolean } = {}): Promise<T
     return c;
   };
   const admin = await connect();
-  const shim = fs.readFileSync(path.join(ROOT, "tests", "db", "shim.sql"), "utf8");
-  if (process.env.DB_BASE === "live-clone") {
-    await loadLiveClone(admin, shim);
-  } else {
-    await admin.query(shim);
-    await admin.query(fs.readFileSync(path.join(ROOT, "tests", "db", "prodlike.sql"), "utf8"));
-  }
+  await admin.query(fs.readFileSync(path.join(ROOT, "tests", "db", "shim.sql"), "utf8"));
+  if (options.fixture) await admin.query(fs.readFileSync(path.join(ROOT, "tests", "db", options.fixture), "utf8"));
+  const stop = async () => {
+    await admin.end().catch(() => {});
+    await server.stop().catch(() => {});
+    fs.rmSync(dir, { recursive: true, force: true });
+  };
   if (options.migrations !== false) {
-    const dirM = path.join(ROOT, "supabase", "retailos", "migrations");
-    for (const f of fs
-      .readdirSync(dirM)
-      .filter((n) => n.endsWith(".sql"))
-      .sort()) {
-      try {
-        await admin.query(fs.readFileSync(path.join(dirM, f), "utf8"));
-      } catch (e) {
-        throw new Error(`Migration ${f} failed: ${(e as Error).message}`);
+    try {
+      const dirM = path.join(ROOT, "supabase", "retailos", "migrations");
+      for (const f of fs
+        .readdirSync(dirM)
+        .filter((n) => n.endsWith(".sql"))
+        .sort()) {
+        try {
+          await admin.query(fs.readFileSync(path.join(dirM, f), "utf8"));
+        } catch (e) {
+          throw new Error(`Migration ${f} failed: ${(e as Error).message}`);
+        }
       }
+    } catch (e) {
+      await stop(); // never leave a database process behind when a migration is refused or fails
+      throw e;
     }
   }
-  return {
-    admin,
-    port,
-    connect,
-    stop: async () => {
-      await admin.end().catch(() => {});
-      await server.stop().catch(() => {});
-      fs.rmSync(dir, { recursive: true, force: true });
-    },
-  };
+  return { admin, port, connect, stop };
 }
 
 export interface Claims {

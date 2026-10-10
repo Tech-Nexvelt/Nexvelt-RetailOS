@@ -1626,14 +1626,14 @@ describe("tenant and branch isolation by changing an ID in a request (required t
     expect(
       (
         await c.query(
-          "select relname from pg_class where relnamespace = 'retailos'::regnamespace and left(relname, 9) <> 'retailos_' and relkind = 'r' and not relrowsecurity",
+          "select relname from pg_class where relnamespace = 'retailos'::regnamespace and relkind = 'r' and not relrowsecurity",
         )
       ).rows,
     ).toEqual([]);
     expect(
       (
         await c.query(
-          "select table_name from information_schema.role_table_grants where grantee = 'anon' and table_schema = 'retailos' and left(table_name, 9) <> 'retailos_'",
+          "select table_name from information_schema.role_table_grants where grantee = 'anon' and table_schema = 'retailos'",
         )
       ).rows,
     ).toEqual([]);
@@ -1642,7 +1642,7 @@ describe("tenant and branch isolation by changing an ID in a request (required t
   it("the exact set of privileges the signed-in role holds on each table is pinned", async () => {
     const r = await c.query(
       `select table_name, string_agg(privilege_type, ',' order by privilege_type) p
-         from information_schema.role_table_grants where grantee = 'authenticated' and table_schema = 'retailos' and left(table_name, 9) <> 'retailos_'
+         from information_schema.role_table_grants where grantee = 'authenticated' and table_schema = 'retailos'
         group by 1 order by 1`,
     );
     const got = Object.fromEntries(r.rows.map((x) => [x.table_name, x.p]));
@@ -1685,7 +1685,7 @@ describe("tenant and branch isolation by changing an ID in a request (required t
     const cols = await c.query(
       `select table_name, string_agg(column_name, ',' order by column_name) c
          from information_schema.column_privileges
-        where grantee = 'authenticated' and table_schema = 'retailos' and left(table_name, 9) <> 'retailos_' and privilege_type = 'UPDATE'
+        where grantee = 'authenticated' and table_schema = 'retailos' and privilege_type = 'UPDATE'
           and table_name in ('tenants','tenant_settings','profiles','tax_rates','barcode_aliases')
         group by 1 order by 1`,
     );
