@@ -12,6 +12,8 @@ import { adjustStockAction, updateItemAction } from "@/server/app/catalog-action
 export function EditItem({ row, canPrice, canEdit, canAdjust }: { row: CatalogRow; canPrice: boolean; canEdit: boolean; canAdjust: boolean }) {
   const router = useRouter();
   const [price, setPrice] = useState((row.pricePaise / 100).toFixed(2));
+  const [mrp, setMrp] = useState(row.mrpPaise === null ? "" : (row.mrpPaise / 100).toFixed(2));
+  const [reorder, setReorder] = useState(row.reorderLevel === null ? "" : String(row.reorderLevel));
   const [delta, setDelta] = useState("");
   const [reason, setReason] = useState<string>("COUNT_CORRECTION");
   const [note, setNote] = useState("");
@@ -37,9 +39,30 @@ export function EditItem({ row, canPrice, canEdit, canAdjust }: { row: CatalogRo
   const savePrice = () => {
     const p = parseRupees(price);
     if (p === null) return setMsg({ tone: "error", text: "Enter the price as a rupee amount, for example 1299 or 49.50." });
+    if (p !== row.pricePaise && !window.confirm(`Change the selling price from ${formatINR(row.pricePaise)} to ${formatINR(p)}?\n\nNew bills will use the new price. Bills already made are not changed.`)) return;
     return run(() => updateItemAction({ kind: row.kind, id: row.id, pricePaise: p }));
   };
-  const toggle = () => run(() => updateItemAction({ kind: row.kind, id: row.id, isActive: !row.active }));
+  const toggle = () => {
+    const msg = row.active
+      ? "Switch this item off?\n\nIt can no longer be added to a bill until you switch it on again. Past bills are not affected."
+      : "Switch this item on?\n\nIt can be added to bills again.";
+    if (!window.confirm(msg)) return;
+    return run(() => updateItemAction({ kind: row.kind, id: row.id, isActive: !row.active }));
+  };
+  const saveDetails = () => {
+    const input: Record<string, unknown> = { kind: row.kind, id: row.id };
+    if (canPrice) {
+      const m = mrp.trim() === "" ? null : parseRupees(mrp);
+      if (m === undefined || (mrp.trim() !== "" && m === null)) return setMsg({ tone: "error", text: "Enter the MRP as a rupee amount, for example 1499, or leave it blank." });
+      input.mrpPaise = m;
+    }
+    if (canEdit) {
+      const r = reorder.trim() === "" ? null : Number(reorder);
+      if (r !== null && (!Number.isInteger(r) || r < 0)) return setMsg({ tone: "error", text: "The low-stock level must be a whole number, 0 or more, or blank." });
+      input.reorderLevel = r;
+    }
+    return run(() => updateItemAction(input));
+  };
   const adjust = () => {
     const d = Number(delta);
     if (!Number.isInteger(d) || d === 0) return setMsg({ tone: "error", text: "Enter how many to add (for example 5) or remove (for example -2)." });
@@ -76,6 +99,17 @@ export function EditItem({ row, canPrice, canEdit, canAdjust }: { row: CatalogRo
           <h2 className="font-semibold">Availability</h2>
           <p className="text-sm text-muted">{row.active ? "Switch off to stop selling it. Past bills are not affected." : "This item is switched off and cannot be sold."}</p>
           <Button className="self-start" onClick={toggle} disabled={busy}>{row.active ? "Switch off" : "Switch on"}</Button>
+        </section>
+      ) : null}
+
+      {row.kind === "VARIANT" && (canPrice || canEdit) ? (
+        <section className="flex flex-col gap-2">
+          <h2 className="font-semibold">MRP and low-stock alert</h2>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {canPrice ? <Field label="MRP ₹ (optional)" htmlFor="mrp" hint="Printed price. Not below the selling price."><Input id="mrp" inputMode="decimal" value={mrp} onChange={(e) => setMrp(e.target.value)} disabled={busy} /></Field> : null}
+            {canEdit ? <Field label="Low-stock alert at (units)" htmlFor="reorder" hint="Warn when stock is this many or fewer. Blank = no alert."><Input id="reorder" inputMode="numeric" value={reorder} onChange={(e) => setReorder(e.target.value)} disabled={busy} /></Field> : null}
+          </div>
+          <Button className="self-start" variant="primary" onClick={saveDetails} disabled={busy}>Save</Button>
         </section>
       ) : null}
 

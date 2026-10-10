@@ -23,13 +23,15 @@ export async function listCatalog(s: AppSession, query: string): Promise<Catalog
         stock: i.kind === "CLOTHING" ? (i.stock ?? 0) : null,
         status: !i.active ? "Switched off" : i.kind === "CLOTHING" ? ((i.stock ?? 0) > 0 ? "In stock" : "Out of stock") : i.status === "IN_STOCK" ? "In stock" : i.status === "SOLD" ? "Sold" : "On hold",
         active: i.active,
+        reorderLevel: null,
+        mrpPaise: null,
       }))
       .filter((r) => matches(r, q));
   }
   const db = s.client!;
   const [products, variants, items, designs, codes, balances] = await Promise.all([
     db.from("products").select("id, name").limit(2000),
-    db.from("product_variants").select("id, product_id, size_label, colour_label, selling_price, is_active").limit(5000),
+    db.from("product_variants").select("id, product_id, size_label, colour_label, selling_price, is_active, mrp, reorder_level").limit(5000),
     db.from("jewellery_items").select("id, design_id, tag_code, tag_price, status, is_active").eq("branch_id", s.branchId).limit(5000),
     db.from("jewellery_designs").select("id, name").limit(2000),
     db.from("barcode_aliases").select("code, variant_id, jewellery_item_id").eq("is_primary", true).eq("is_active", true).limit(10000),
@@ -57,6 +59,8 @@ export async function listCatalog(s: AppSession, query: string): Promise<Catalog
         stock,
         status: !v.is_active ? "Switched off" : stock === null ? "—" : stock > 0 ? "In stock" : "Out of stock",
         active: Boolean(v.is_active),
+        reorderLevel: v.reorder_level === null || v.reorder_level === undefined ? null : Number(v.reorder_level),
+        mrpPaise: v.mrp === null || v.mrp === undefined ? null : toPaise(v.mrp),
       };
     }),
     ...(items.data ?? []).map<CatalogRow>((i) => ({
@@ -69,6 +73,8 @@ export async function listCatalog(s: AppSession, query: string): Promise<Catalog
       stock: null,
       status: !i.is_active ? "Switched off" : i.status === "IN_STOCK" ? "In stock" : i.status === "SOLD" ? "Sold" : i.status === "QC_HOLD" ? "On hold" : String(i.status),
       active: Boolean(i.is_active),
+      reorderLevel: null,
+      mrpPaise: null,
     })),
   ];
   return rows.filter((r) => matches(r, q)).sort((a, b) => a.name.localeCompare(b.name) || a.detail.localeCompare(b.detail));
@@ -78,4 +84,38 @@ export async function getCatalogRow(s: AppSession, id: string): Promise<CatalogR
   if (!/^[A-Za-z0-9-]{1,64}$/.test(id)) return null;
   const rows = await listCatalog(s, "");
   return rows.find((r) => r.id === id) ?? null;
+}
+
+export interface MovementRow {
+  at: string;
+  type: string;
+  delta: number;
+  balanceAfter: number;
+  reason: string;
+  note: string | null;
+}
+
+/**
+ * Stock history for one clothing variant at the active branch, newest first. READ ONLY: rows come from the immutable ledger
+ * under the caller's own permissions (inventory.view); nothing here can write. Returns null when the caller may not see it.
+ */
+export async function listMovements(s: AppSession, variantId: string): Promise<MovementRow[] | null> {
+  if (s.mode === "demo" || !s.client) return null;
+  if (!/^[0-9a-f-]{36}$/i.test(variantId)) return null;
+  const { data, error } = await s.client
+    .from("inventory_movements")
+    .select("created_at, movement_type, quantity_delta, balance_after, reason_code, note")
+    .eq("variant_id", variantId)
+    .eq("branch_id", s.branchId)
+    .order("created_at", { ascending: false })
+    .limit(50);
+  if (error) return null;
+  return (data ?? []).map((m) => ({
+    at: String(m.created_at),
+    type: String(m.movement_type),
+    delta: Number(m.quantity_delta),
+    balanceAfter: Number(m.balance_after),
+    reason: String(m.reason_code ?? ""),
+    note: m.note === null || m.note === undefined ? null : String(m.note),
+  }));
 }

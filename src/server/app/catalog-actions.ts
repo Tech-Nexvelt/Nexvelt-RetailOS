@@ -112,23 +112,56 @@ export async function createJewelleryAction(input: unknown): Promise<CatalogResu
 }
 
 const updateSchema = z
-  .object({ kind: z.enum(["VARIANT", "JEWELLERY"]), id: z.uuid(), pricePaise: paise.optional(), isActive: z.boolean().optional() })
+  .object({
+    kind: z.enum(["VARIANT", "JEWELLERY"]),
+    id: z.uuid(),
+    pricePaise: paise.optional(),
+    isActive: z.boolean().optional(),
+    /** printed MRP in paise; null clears it. Clothing only. */
+    mrpPaise: paise.nullable().optional(),
+    /** low-stock alert level in units; null clears it. Clothing only. */
+    reorderLevel: z.number().int().min(0).max(1_000_000).nullable().optional(),
+  })
   .strict();
 
-/** Change price and/or availability. A price change needs product.price_edit (owner by default). */
+/**
+ * Change price, MRP, availability and/or the low-stock level. Price and MRP need product.price_edit; availability and the reorder
+ * level need product.edit. Each group present in the request is checked separately on the server, and the database checks again
+ * under Row Level Security. Stock quantity is NOT changed here: only the inventory_adjust function can do that.
+ */
 export async function updateItemAction(input: unknown): Promise<CatalogResult> {
   const p = updateSchema.safeParse(input);
   if (!p.success) return fail("VALIDATION_ERROR");
   const v = p.data;
-  const g = await gate(v.pricePaise !== undefined ? "product.price_edit" : "product.edit");
+  const priceGroup = v.pricePaise !== undefined || v.mrpPaise !== undefined;
+  const editGroup = v.isActive !== undefined || v.reorderLevel !== undefined;
+  if (!priceGroup && !editGroup) return fail("VALIDATION_ERROR");
+  if (v.kind === "JEWELLERY" && (v.mrpPaise !== undefined || v.reorderLevel !== undefined)) return fail("VALIDATION_ERROR");
+  let g = await gate(priceGroup ? "product.price_edit" : "product.edit");
   if ("error" in g) return g.error;
+  if (priceGroup && editGroup) {
+    const second = await gate("product.edit");
+    if ("error" in second) return second.error;
+    g = second;
+  }
   const db = g.s.client!;
   if (v.kind === "JEWELLERY") {
     const { error } = await db.rpc("catalog_update_jewellery", { p_item: v.id, p_price_paise: v.pricePaise ?? null, p_is_active: v.isActive ?? null });
     return error ? fail(dbCode(error)) : { ok: true, data: undefined, message: "Saved." };
   }
+  if (priceGroup) {
+    // The database refuses an MRP below the selling price; check here first so the message is clear and nothing is half-applied.
+    const cur = await db.from("product_variants").select("selling_price, mrp").eq("id", v.id).maybeSingle();
+    if (cur.error) return fail(dbCode(cur.error));
+    if (!cur.data) return fail("NOT_FOUND");
+    const price = v.pricePaise !== undefined ? v.pricePaise : Math.round(Number(cur.data.selling_price) * 100);
+    const mrp = v.mrpPaise !== undefined ? v.mrpPaise : cur.data.mrp === null ? null : Math.round(Number(cur.data.mrp) * 100);
+    if (mrp !== null && mrp < price) return fail("MRP_BELOW_PRICE", "mrp");
+  }
   const patch: Record<string, unknown> = {};
   if (v.pricePaise !== undefined) patch.selling_price = v.pricePaise / 100;
+  if (v.mrpPaise !== undefined) patch.mrp = v.mrpPaise === null ? null : v.mrpPaise / 100;
+  if (v.reorderLevel !== undefined) patch.reorder_level = v.reorderLevel;
   if (v.isActive !== undefined) patch.is_active = v.isActive;
   if (Object.keys(patch).length === 0) return fail("VALIDATION_ERROR");
   const { data, error } = await db.from("product_variants").update(patch).eq("id", v.id).select("id");
