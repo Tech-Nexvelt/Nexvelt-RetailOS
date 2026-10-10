@@ -687,7 +687,7 @@ with expected(sig, hash) as (values
     ('retailos_private.variant_price_guard()', 'ad122238cf5013a1a6b269653c63c16d'),
     ('retailos_private.write_audit(uuid,uuid,text,text,uuid,jsonb,jsonb,text,jsonb)', 'c85d85ee9c36bbe0d55fa796b5ab0fe5')
 ), actual as (
-  select p.oid::regprocedure::text as sig, md5(pg_get_functiondef(p.oid)) as hash
+  select p.oid::regprocedure::text as sig, md5(replace(pg_get_functiondef(p.oid), chr(13), '')) as hash
   from pg_proc p where p.pronamespace in ('retailos'::regnamespace, 'retailos_private'::regnamespace)
 )
 select coalesce(e.sig, a.sig) as function,

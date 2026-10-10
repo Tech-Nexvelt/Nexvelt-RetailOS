@@ -141,7 +141,7 @@ export function verdicts(rows, allMigrations) {
 }
 
 /** function name+args -> md5 of its full definition, computed in one catalogue query */
-export const functionHashSql = `select p.oid::regprocedure::text || '|' || md5(pg_get_functiondef(p.oid)) as l
+export const functionHashSql = `select p.oid::regprocedure::text || '|' || md5(replace(pg_get_functiondef(p.oid), chr(13), '')) as l
 from pg_proc p where p.pronamespace in ('retailos'::regnamespace, 'retailos_private'::regnamespace) order by 1`;
 
 /** per-migration counts, built on diagnosticSql */
@@ -162,7 +162,7 @@ export function functionCompareSql(expectedLines) {
   return `with expected(sig, hash) as (values
     ${values.join(",\n    ")}
 ), actual as (
-  select p.oid::regprocedure::text as sig, md5(pg_get_functiondef(p.oid)) as hash
+  select p.oid::regprocedure::text as sig, md5(replace(pg_get_functiondef(p.oid), chr(13), '')) as hash
   from pg_proc p where p.pronamespace in ('retailos'::regnamespace, 'retailos_private'::regnamespace)
 )
 select coalesce(e.sig, a.sig) as function,
