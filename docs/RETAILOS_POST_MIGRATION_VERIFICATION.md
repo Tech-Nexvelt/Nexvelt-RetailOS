@@ -1,55 +1,178 @@
-# RetailOS — post-migration verification and release readiness
+# RetailOS — apply the migrations and verify the hosted project
 
-You apply the migrations yourself. Nothing here applies, rolls back or edits migrations. The scripts named below are read-only.
-Nothing was verified against the hosted database when this file was written: sections 2 and 3 are **pending your migration**.
+Project ref `dlxgvpmvlwbqxogyzlhr` · approved manifest `ab468e4fbed8` · 16 migrations (`…000_fresh_project_guard` first, `…015_schema_marker` last).
 
-## 1. Local checks (run now; no database, no network)
-| Command | What it proves |
+Every step is tagged:
+* **[LOCAL]** runs on your machine with no hosted database. Already run and passing; rerun any time.
+* **[HOSTED]** needs the migrated hosted database. **None of these have been run.** Do not treat the hosted project as ready until each one is recorded as passed.
+* **[DASHBOARD]** is a manual Supabase or hosting-platform action.
+
+Nothing in this file is applied by Claude: you run the migration. The verification scripts are read-only and never apply anything.
+
+---
+## Part A — before you migrate
+
+### A1 [LOCAL] Prove the files are the approved ones
+```powershell
+cd E:\Softwares\NexveltretailOS
+npm run retailos:manifest:check          # must print: Manifest OK (21 files)
+(Get-FileHash supabase\retailos\MANIFEST.sha256 -Algorithm SHA256).Hash.Substring(0,12).ToLower()   # must be ab468e4fbed8
+cd supabase\retailos\migrations; sha256sum -c SHA256SUMS; cd ..\..\..   # 16 lines ending OK (Git Bash / WSL)
+```
+Stop if any line differs. Do not edit a migration, `rollback.sql`, `bootstrap/first-tenant.sql` or anything in `verify/`: they are hash-pinned.
+
+### A2 [LOCAL] Rerun the full local suite
+```powershell
+npm run typecheck; npm run lint; npm test; npm run schema:app-check; npm run test:db; npm run build
+```
+Expected: typecheck/lint clean, 251 unit tests, `OK application code is compatible…`, 228 database tests, build succeeds.
+
+### A3 [DASHBOARD] Auth settings that must be true BEFORE you migrate
+| Setting | Value |
 |---|---|
-| `npm run typecheck` / `npm run lint` | types and lint |
-| `npm test` | 251 unit tests: billing engine, money, auth context, env rules, migration static guards |
-| `npm run test:db` | 228 tests on embedded PostgreSQL 17 with a Supabase-like shim: RLS, tenant isolation, RBAC, checkout, idempotency, concurrency, guard, rollback round trip |
-| `npm run build` | production build |
-| `npm run retailos:manifest:check` | the SQL files are exactly the approved manifest (`ab468e4fbed8`) |
-| `npm run schema:app-check` | every table, column, RPC and RPC argument the app uses exists in the approved schema |
-| `npm run env:check` | environment variables are present and well formed (OK/PROBLEM only; no values printed) |
+| Authentication → Hooks | **none** configured (the guard and post-checks reject a project with an auth hook or an `auth.users` trigger) |
+| Project must be empty | no tables, functions or triggers created by hand (the guard refuses otherwise) |
 
-## 2. Hosted database checks (run AFTER you applied the migrations; read-only)
-Prerequisite: `RETAILOS_DATABASE_URL` (session pooler, port 5432) and `RETAILOS_DB_CA_FILE` in `.env.local`, set with `node scripts/set-secret.mjs dburl`.
-1. `node scripts/hosted-preflight.mjs --db-only` — **before** migrating it must pass (empty target). After migrating it is expected to FAIL on "no RetailOS schemas yet"; that is correct and means the schema exists.
-2. `node scripts/hosted-verify.mjs --db-only` — read-only transaction, always rolled back. Checks: the 11 post-checks return zero rows (RLS everywhere, no anon access, no open or tautological policies, closed functions with fixed search_path, no auth hook, marker present); the live schema equals `verify/expected_inventory.txt` line for line (1013 lines); the schema marker; anon and a signed-in user without membership read no tenant rows.
-3. `node scripts/verify-schema.mjs` offline comparer, if you prefer psql: `psql -At -f supabase/retailos/verify/inventory.sql > inventory-actual.txt` then `npm run retailos:verify:schema -- inventory-actual.txt`.
+### A4 [HOSTED, read-only] Confirm the target is clean (database connection only)
+Put the connection string in `.env.local` with the helper (hidden input; never paste it anywhere):
+```powershell
+node scripts/set-secret.mjs dburl        # type/paste the CURRENT database password
+node scripts/hosted-preflight.mjs --db-only
+```
+Expected: every line PASS, ending `PREFLIGHT PASSED (read-only)`. It checks: TLS verified against the Supabase CA, `postgres` on PostgreSQL 17+, Supabase roles present, **no** `retailos` schemas, no application objects, no trigger on `auth.users`, and a dry run of the guard in a read-only transaction.
+If it says `password authentication failed`, the stored password is wrong: reset it in the dashboard once, then rerun `set-secret.mjs dburl` (paste, do not retype).
 
-Not covered by these scripts (cannot be proven by reading the catalogue): cross-tenant isolation with two real businesses, a real sale through the hosted API, and email delivery. Section 4 covers them.
+### A5 [DASHBOARD] Apply the migrations (you do this)
+Either run `node scripts/hosted-apply.mjs --i-have-run-the-preflight` yourself (one transaction per file, guard first, stops at the FIRST failure, never reruns), or paste the files into the Supabase SQL editor in order, each inside `begin; … commit;`, as `postgres`.
+If anything fails: **stop**. Do not rerun. Inspect the actual state with the read-only query in A6 and send the output; a partially applied set must be assessed, not retried.
 
-## 3. Manual Supabase dashboard actions (none can be verified by the scripts without the Management API)
-| # | Action | When |
-|---|---|---|
-| 1 | Authentication → **Allow new users to sign up: off** | before real users |
-| 2 | Authentication → Email provider on, **Confirm email on** | before real users |
-| 3 | Authentication → URL configuration: Site URL = the production https URL; add it to Redirect URLs | before deploy |
-| 4 | Authentication → Hooks: none | before migrating (the guard/post-checks require it) |
-| 5 | Project Settings → Data API → **Exposed schemas: add `retailos`; never add `retailos_private`** | after sections 2 passes |
-| 6 | Authentication → create the first owner (email, auto-confirm), then run `bootstrap/first-tenant.sql` after editing its 5 values | after section 2 passes |
-| 7 | Reset the database password and revoke old access tokens that were ever pasted into chat | now |
-| 8 | Database → Backups: note the plan; take a manual backup before real data | before go-live |
+---
+## Part B — verify the migrated schema
 
-## 4. Hosted functional test (after sections 2 and 3; test data only, no real payments)
-Sign in as the owner → create a product with opening stock → adjust stock → start the day → scan and sell for cash → repeat the same submission (must not create a second bill) → open the receipt → check Sales and Reports → void if enabled for the role. Then sign in as a user of a second test business and confirm none of the first business's products, sales or reports are visible. Record the results; do not mark any of them done until they ran.
+### B1 [HOSTED, read-only] Schema, RLS, grants, functions, triggers
+```powershell
+node scripts/hosted-verify.mjs --db-only
+```
+Expected: all PASS, ending `VERIFICATION PASSED for everything that ran.` It checks, in one read-only transaction that is always rolled back:
+* the 11 post-checks return zero rows (RLS on every table; no table privilege for `anon`; no function callable by `anon`/PUBLIC; every `SECURITY DEFINER` function has a fixed `search_path`; no open or `using (true)` policy except the two global permission-catalogue reads; ledger tables have no API write privilege; no `auth.users` trigger; nothing in `public`; schema marker correct);
+* the live schema equals `supabase/retailos/verify/expected_inventory.txt` line for line (1013 lines);
+* `retailos.schema_info` = `retailos / 1 / dedicated-project-v1`;
+* `anon` and a signed-in user with no membership read no row of any tenant table (the three global permission-catalogue tables are excluded by design).
+The Data API line prints `BLOCKED` in `--db-only` mode: that is expected, it is covered in B3.
 
-## 5. Production environment variables (set in the hosting platform; never in git)
-| Name | Public to the browser | Source |
-|---|---|---|
-| `BILLING_BACKEND` | no | `supabase` |
-| `NEXT_PUBLIC_SUPABASE_URL` | yes | `https://dlxgvpmvlwbqxogyzlhr.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | yes (by design) | Project Settings → API Keys → publishable key |
-| `NEXT_PUBLIC_SITE_URL` | yes | your production https URL (required; email links are built from it) |
-| `SUPABASE_SECRET_KEY` | **no, server only** | Project Settings → API Keys → secret key (used only to invite staff) |
+### B2 [HOSTED, read-only] Optional psql comparison
+```powershell
+psql "<your session-pooler string>" -At -f supabase/retailos/verify/inventory.sql > inventory-actual.txt
+npm run retailos:verify:schema -- inventory-actual.txt     # must print: Schema matches the expected inventory (1013 lines)
+```
 
-Do **not** set `RETAILOS_DATABASE_URL`, `RETAILOS_DB_CA_FILE`, `SUPABASE_ACCESS_TOKEN` or any database password in the hosting platform; the application does not read them. Check with `NODE_ENV=production npm run env:check`.
+### B3 [DASHBOARD] Expose the schema (only after B1 passed)
+Project Settings → Data API → **Exposed schemas**: add **`retailos`**. Do **not** add `retailos_private` (it must stay unreachable through the API). Keep `public` as Supabase has it. Save.
+Check from any machine (no secret needed beyond the publishable key):
+```powershell
+$ref="dlxgvpmvlwbqxogyzlhr"; $pub="<publishable key>"
+# retailos reachable but empty to an anonymous caller (401/permission denied or []), retailos_private must be refused:
+curl.exe -s -o NUL -w "retailos_private: %{http_code}\n" -H "apikey: $pub" -H "Accept-Profile: retailos_private" "https://$ref.supabase.co/rest/v1/"
+```
+Expected for `retailos_private`: an error status (406/404), never 200 with a schema listing.
 
-## 6. Known gaps and recommendations (not implemented; deliberately not added as features)
-* **Rate limiting:** the app relays Supabase Auth's own rate-limit response ("Too many attempts") and has no limiter of its own. Supabase's per-IP limits apply; review them under Authentication → Rate Limits.
-* **Security headers:** `nosniff`, `Referrer-Policy`, `X-Frame-Options: DENY` and `Permissions-Policy` are set. There is **no Content-Security-Policy and no HSTS** in `next.config.ts`. HSTS is normally added by the host on a custom domain; verify it after deploy. A CSP needs testing against the running app before enabling.
-* **Wired in the database but with no screen yet:** voiding an invoice (`pos_void_invoice`), metal-rate management (`metal_rate_set`), category management, and archiving products. Stock reports and low-stock views are likewise not built. These are feature work, left out of this release on purpose.
-* The demo billing backend refuses to run in production builds (`demo_forbidden`); that fail-closed behavior is covered by unit tests.
+---
+## Part C — Auth dashboard configuration [DASHBOARD]
+| # | Setting | Value | Why |
+|---|---|---|---|
+| C1 | Authentication → Sign In / Providers → **Allow new users to sign up** | **off** | access is by invitation only |
+| C2 | Email provider | enabled, **Confirm email on** | |
+| C3 | URL configuration → **Site URL** | your production **https** URL | must equal `NEXT_PUBLIC_SITE_URL` |
+| C4 | URL configuration → **Redirect URLs** | add `<site url>/auth/confirm` | invite and reset links land there |
+| C5 | Authentication → **SMTP Settings** | a custom SMTP provider | Supabase's built-in sender is limited to a few emails per hour and is for testing; staff invitations and password resets will fail or be throttled without real SMTP |
+| C6 | Authentication → Rate Limits | review the defaults | the app relies on these for login throttling |
+| C7 | Database → Backups | note the plan; take a manual backup before real data | recovery |
+
+---
+## Part D — create the owner and the first business
+
+### D1 [DASHBOARD] Owner login
+Authentication → Users → **Add user** → *Create new user*: the owner's email and a strong password, **Auto Confirm User** ticked. (With sign-up off, this is the only way to create the first login.)
+
+### D2 [HOSTED] Tenant bootstrap — run a COPY, never edit the repo file
+```powershell
+Copy-Item supabase\retailos\bootstrap\first-tenant.sql $env:TEMP\first-tenant.mine.sql
+notepad $env:TEMP\first-tenant.mine.sql
+```
+Edit only the five constants at the top: `v_owner_email` (the login from D1), `v_trade_name`, `v_legal_name`, `v_state_code` (exactly 2 characters; confirm with the business), `v_tenant_code` (2–10 capitals/digits). Paste the whole edited file into the **SQL editor** and run it once. Expected message: `Done. <email> is now the owner of <name> (branch MAIN, counter C1).` It is idempotent; leaving a `REPLACE_` value makes it stop. Delete the temp copy afterwards.
+(The repo file is hash-pinned; editing it in place breaks `retailos:manifest:check`.)
+
+### D3 [HOSTED, read-only] Confirm the bootstrap
+```sql
+select t.code, t.trade_name, b.code as branch, c.code as counter
+from retailos.tenants t join retailos.branches b on b.tenant_id = t.id join retailos.counters c on c.branch_id = b.id;
+select r.key, m.status from retailos.tenant_memberships m join retailos.roles r on r.id = m.role_id;   -- expect tenant_owner / ACTIVE
+```
+
+---
+## Part E — environment for the running app
+
+Local run against the hosted project (optional smoke test before deploying) uses `.env.local` with the five application variables from Part F, then `npm run build; npm start`. Set `BILLING_BACKEND=supabase`. Never use `demo` against real data (it refuses to run in a production build).
+
+---
+## Part F — hosting-platform environment variables [DASHBOARD]
+Set these in the hosting platform (for Vercel: Project → Settings → Environment Variables, scope **Production**; add **Preview** only if you want preview deployments to use this project). Values are not in this repository and are not invented here.
+
+| Name | Browser-visible | Value comes from | Notes |
+|---|---|---|---|
+| `BILLING_BACKEND` | no | type `supabase` | anything else is refused in production |
+| `NEXT_PUBLIC_SUPABASE_URL` | yes | `https://dlxgvpmvlwbqxogyzlhr.supabase.co` | |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | yes (designed to be public) | Supabase → Project Settings → API Keys → **publishable** key (`sb_publishable_…`) | RLS, not secrecy, protects data. Never put a secret key here. |
+| `NEXT_PUBLIC_SITE_URL` | yes | your production **https** origin, no trailing path (same as C3) | email links are built from it, never from request headers; `localhost` is rejected in production |
+| `SUPABASE_SECRET_KEY` | **no — server only** | Supabase → API Keys → **secret** key (`sb_secret_…`) | only used to invite staff. Mark it *Sensitive* if the platform offers that. **Never** give it a `NEXT_PUBLIC_` prefix. |
+
+Do **not** set `RETAILOS_DATABASE_URL`, `RETAILOS_DB_CA_FILE`, `SUPABASE_ACCESS_TOKEN`, `RETAILOS_SUPABASE_PROJECT_REF` or any database password in the hosting platform: the application never reads them.
+`NEXT_PUBLIC_*` values are compiled into the build, so **redeploy after changing them**.
+
+### F1 [LOCAL] Validate without printing values
+```powershell
+$env:NODE_ENV="production"; npm run env:check     # OK/PROBLEM per variable; secrets are never printed
+```
+After the build, the browser bundle must not contain the secret key (it is server-only): `Select-String -Path .next\static -Pattern "sb_secret_","service_role" -Recurse` must find nothing.
+
+---
+## Part G — functional tests on the hosted app (test data only; no real payments)
+Run in order, after A–F pass. Record each result; do not mark a step done unless it ran.
+
+**G1 Login and role access [HOSTED]**
+1. Open the app signed out → any page redirects to `/login?next=…`. Sign in as the owner → lands on `/dashboard`; navigation shows Billing, Products & Stock, Sales, Reports, Settings.
+2. Reload and wait; the session persists. Sign out → `/billing` redirects to `/login`.
+3. Settings → invite a test cashier (a real mailbox you control; needs C5 and `SUPABASE_SECRET_KEY`). Open the email link → set password → the cashier lands on `/billing` and sees **only** Billing. Typing `/settings` or `/reports` in the address bar must not show those pages.
+4. A login with no membership must land on `/no-access`.
+
+**G2 Product creation and inventory [HOSTED]**
+1. Products & Stock → **New product** → Clothing: name, category, size, colour, price, opening stock → Save. Expect the product in the list with that stock.
+2. Open the product → adjust stock (pick a reason from the list; the default is "count correction"). Expect the new count and a recorded movement; an adjustment that would make stock negative must be refused.
+3. Add one imitation-jewellery piece (one tagged item). Expect it listed as "1 piece".
+
+**G3 Checkout, payment, receipt [HOSTED]**
+1. Billing → enter opening cash → **Start day**.
+2. Scan or type the product barcode → cash payment for more than the total → change is shown → **Complete bill**. Expect `Bill saved: <number>`.
+3. Press the same complete action twice quickly, or refresh and resubmit: exactly **one** bill must exist (idempotency). Check Sales.
+4. Sell the jewellery piece by **UPI**: *Complete bill* stays disabled until "Payment received" is ticked; UPI/card are recorded as confirmed, not verified with a bank.
+5. Open the bill → **Reprint receipt**: prices as sold, "Paid by …", "DUPLICATE COPY", and a clear "No tax applied" line if tax is not configured.
+6. Try to sell the same one-off jewellery piece again: refused (already sold).
+7. Stock for the clothing item decreased by the quantity sold.
+
+**G4 Sales history and reports [HOSTED]**
+1. Sales lists both bills, newest first, with correct totals and payment method.
+2. Reports for today: total, bill count and the by-method split equal the sum of the bills. Set From after To → "The dates are the wrong way round." A range over a year is refused with a message.
+
+**G5 Isolation between two businesses [HOSTED]** — the most important test
+1. Create a second login (D1) and a second business by running a **copy** of the bootstrap with a different owner email, trade name and `v_tenant_code` (D2).
+2. Sign in as business B's owner. Products, Sales and Reports must be **empty**; none of A's products, bills or numbers appear.
+3. Copy the URL of one of A's bills (`/sales/<id>`) while signed in as B → must show "not found"/no access, never the receipt.
+4. Reverse: A must not see B's data.
+5. [HOSTED, read-only] `node scripts/hosted-verify.mjs --db-only` again. It must still end `VERIFICATION PASSED`.
+
+---
+## Part H — what is NOT verified or not built (honest list)
+* Part B–G have **not** been run against the hosted project. Local tests prove the SQL and the app logic on embedded PostgreSQL with a Supabase-like shim, not Supabase itself (real Auth, the Data API, email delivery and the pooler are not exercised locally).
+* Not built as screens (database functions exist for some): voiding a bill, metal-rate management, category management, archiving products, stock/low-stock reports, exports, tax reports.
+* Security headers: `nosniff`, `Referrer-Policy`, `X-Frame-Options: DENY`, `Permissions-Policy` and `Strict-Transport-Security: max-age=31536000` (this host only) are set. There is **no Content-Security-Policy**: it needs testing against the running app before enabling. Login throttling relies on Supabase Auth's own limits (C6); the app only relays the "Too many attempts" response.
+* Hygiene still owed by you: reset the database password that was exposed in chat and revoke any access token ever pasted into chat.

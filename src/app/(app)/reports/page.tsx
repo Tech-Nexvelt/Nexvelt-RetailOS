@@ -12,7 +12,8 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
   const today = todayIST();
   const from = isoDate(q.from, today);
   const to = isoDate(q.to, today);
-  const summary = await salesSummary(s, from, to);
+  const reversed = from > to; // ISO dates compare correctly as strings; the database also rejects this range
+  const summary = reversed ? null : await salesSummary(s, from, to);
   return (
     <div className="flex flex-col gap-4">
       <div>
@@ -26,6 +27,8 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
       </form>
       {summary ? (
         <SummaryCards summary={summary} title={`${from} to ${to}`} />
+      ) : reversed ? (
+        <Banner tone="error" title="The dates are the wrong way round.">The “From” date must be on or before the “To” date. Change one of them and press Show.</Banner>
       ) : (
         <Banner tone="error" title="This report could not be loaded.">The date range may be longer than a year, or the connection failed. Try a shorter range.</Banner>
       )}
