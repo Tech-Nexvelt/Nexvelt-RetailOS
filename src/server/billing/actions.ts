@@ -14,6 +14,8 @@ import type {
   SessionState,
 } from "@/domain/billing";
 import { policyFor } from "@/domain/policy";
+import { quoteWithPhotos, resultsWithPhotos, type PhotoClient } from "../app/cart-photos";
+import { getAppSession } from "../app/session";
 import { createUserClient } from "@/lib/supabase/server";
 import { canInBranch, loadContext, pickBillingTarget, type QueryClient } from "../auth/context";
 import { getCurrentRole, isRole, requirePermission, ROLE_COOKIE } from "../session";
@@ -136,18 +138,39 @@ export async function startDay(openingFloatPaise: number): Promise<ActionResult<
   return withBackend((b) => b.startDay(parsed.data));
 }
 
+/**
+ * Photos are cosmetic: after the database has priced the cart, attach each line's signed photo URL using the signed-in user's own
+ * session. In demo mode, or on any problem, the result is returned unchanged (placeholders). Billing never waits on or fails because of a photo.
+ */
+async function photoContext(): Promise<{ client: PhotoClient; tenantId: string } | null> {
+  try {
+    const s = await getAppSession();
+    return s && s.mode === "supabase" && s.client ? { client: s.client as unknown as PhotoClient, tenantId: s.tenantId } : null;
+  } catch {
+    return null;
+  }
+}
+async function withQuotePhotos(r: ActionResult<Quote>): Promise<ActionResult<Quote>> {
+  if (!r.ok) return r;
+  const p = await photoContext();
+  return p ? { ok: true, data: await quoteWithPhotos(p.client, p.tenantId, r.data) } : r;
+}
+
 export async function scanBarcode(
   code: string,
   currentCart: CartLineInput[],
 ): Promise<ActionResult<Quote>> {
   const c = cart.safeParse(currentCart);
   if (!c.success || typeof code !== "string" || code.length > 128) return INVALID;
-  return withBackend((b) => b.scan(code, c.data));
+  return withQuotePhotos(await withBackend((b) => b.scan(code, c.data)));
 }
 
 export async function searchItems(query: string): Promise<ActionResult<SearchResult[]>> {
   if (typeof query !== "string" || query.length > 80) return INVALID;
-  return withBackend((b) => b.search(query));
+  const r = await withBackend((b) => b.search(query));
+  if (!r.ok) return r;
+  const p = await photoContext();
+  return p ? { ok: true, data: await resultsWithPhotos(p.client, p.tenantId, r.data) } : r;
 }
 
 export async function addItem(
@@ -156,13 +179,13 @@ export async function addItem(
 ): Promise<ActionResult<Quote>> {
   const c = cart.safeParse(currentCart);
   if (!c.success || typeof itemId !== "string" || itemId.length > 64) return INVALID;
-  return withBackend((b) => b.addItem(itemId, c.data));
+  return withQuotePhotos(await withBackend((b) => b.addItem(itemId, c.data)));
 }
 
 export async function quoteCart(currentCart: CartLineInput[]): Promise<ActionResult<Quote>> {
   const c = cart.safeParse(currentCart);
   if (!c.success) return INVALID;
-  return withBackend((b) => b.quote(c.data));
+  return withQuotePhotos(await withBackend((b) => b.quote(c.data)));
 }
 
 export async function completeCheckout(

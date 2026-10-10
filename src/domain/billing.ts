@@ -15,6 +15,8 @@ export interface CartLineInput {
 
 /** A cart line as priced by the server. */
 export interface QuotedLine {
+  /** short-lived signed URL of the item's photo, attached by the server after pricing; absent or null when it has none */
+  imageUrl?: string | null;
   itemId: string;
   kind: ItemKind;
   name: string;
@@ -53,6 +55,8 @@ export interface Quote {
 }
 
 export interface SearchResult {
+  /** short-lived signed URL of the item's photo; absent or null when it has none */
+  imageUrl?: string | null;
   itemId: string;
   kind: ItemKind;
   name: string;
