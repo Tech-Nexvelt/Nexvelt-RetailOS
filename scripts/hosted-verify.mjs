@@ -33,7 +33,7 @@ if (!(u.hostname.includes(ref) || decodeURIComponent(u.username).endsWith("." + 
   process.exit(1);
 }
 const verify = join(root, "supabase", "retailos", "verify");
-const client = new pg.Client({ connectionString: dbUrl, ssl: { rejectUnauthorized: true }, connectionTimeoutMillis: 20000, statement_timeout: 60000 });
+const client = new pg.Client({ connectionString: dbUrl, ssl: { rejectUnauthorized: true, ...(env.RETAILOS_DB_CA_FILE ? { ca: readFileSync(env.RETAILOS_DB_CA_FILE, "utf8") } : {}) }, connectionTimeoutMillis: 20000, statement_timeout: 60000 });
 await client.connect();
 try {
   await client.query("begin read only");

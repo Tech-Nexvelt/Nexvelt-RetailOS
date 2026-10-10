@@ -49,7 +49,7 @@ const migDir = join(sret, "migrations");
 const migs = readdirSync(migDir).filter((f) => f.endsWith(".sql")).sort();
 if (migs.length !== 16 || !migs[0].startsWith("20261010100000_") || !migs[15].startsWith("20261010100015_")) die("unexpected migration set");
 
-const client = new pg.Client({ connectionString: dbUrl, ssl: { rejectUnauthorized: true }, connectionTimeoutMillis: 20000, statement_timeout: 120000 });
+const client = new pg.Client({ connectionString: dbUrl, ssl: { rejectUnauthorized: true, ...(env.RETAILOS_DB_CA_FILE ? { ca: readFileSync(env.RETAILOS_DB_CA_FILE, "utf8") } : {}) }, connectionTimeoutMillis: 20000, statement_timeout: 120000 });
 try {
   await client.connect();
 } catch (e) {

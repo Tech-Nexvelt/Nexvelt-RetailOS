@@ -52,7 +52,9 @@ try {
 const userPart = decodeURIComponent(u.username);
 gate("database URL belongs to the new project (host or user carries the ref)", u.hostname.includes(ref) || userPart.endsWith("." + ref), `host=${u.hostname}`);
 if (other) gate("database URL does NOT mention the Tirumala ref", !dbUrl.includes(other));
-gate("database URL uses port 5432 (session pooler or direct)", u.port === "5432" || u.port === "");
+gate("database URL is a postgres connection string (not the https API address)", /^postgres(ql)?:$/.test(u.protocol), "scheme=" + u.protocol);
+gate("database host is the Supabase pooler or the project's db host", u.hostname.endsWith(".pooler.supabase.com") || u.hostname === "db." + ref + ".supabase.co", "host kind check");
+gate("database URL has a password and port 5432", u.password.length > 0 && u.port === "5432", "port=" + (u.port || "none"));
 if (failed) stop("project identity mismatch");
 
 // 2. manifest + checksums
@@ -92,7 +94,7 @@ try {
 if (failed) stop("project identity not established");
 
 // 4. database inspection: one READ ONLY transaction, always rolled back
-const client = new pg.Client({ connectionString: dbUrl, ssl: { rejectUnauthorized: true }, statement_timeout: 20000, connectionTimeoutMillis: 20000 });
+const client = new pg.Client({ connectionString: dbUrl, ssl: { rejectUnauthorized: true, ...(env.RETAILOS_DB_CA_FILE ? { ca: readFileSync(env.RETAILOS_DB_CA_FILE, "utf8") } : {}) }, statement_timeout: 20000, connectionTimeoutMillis: 20000 });
 try {
   await client.connect();
 } catch (e) {
