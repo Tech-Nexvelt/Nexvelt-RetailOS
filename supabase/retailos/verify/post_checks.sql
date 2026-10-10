@@ -66,3 +66,16 @@ where c.relnamespace = 'public'::regnamespace and c.relkind in ('r', 'p', 'v', '
 -- @query schema_marker_missing_or_wrong
 select 'schema_info' as problem
 where not exists (select 1 from retailos.schema_info where app = 'retailos' and schema_version = 1 and migration_set = 'dedicated-project-v1');
+
+-- @query image_bucket_missing_or_not_private
+select 'product-images' as problem
+where not exists (
+  select 1 from storage.buckets
+  where id = 'product-images' and public = false and file_size_limit = 5242880
+    and allowed_mime_types @> array['image/jpeg', 'image/png', 'image/webp'] and allowed_mime_types <@ array['image/jpeg', 'image/png', 'image/webp']);
+
+-- @query image_storage_policy_unexpected
+select p.policyname::text as problem
+from pg_policies p
+where p.schemaname = 'storage' and p.tablename = 'objects' and p.policyname like 'product_images_%'
+  and (p.cmd = 'UPDATE' or p.roles && array['public', 'anon']::name[]);

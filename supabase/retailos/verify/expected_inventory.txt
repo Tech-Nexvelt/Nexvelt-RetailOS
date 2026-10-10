@@ -1,4 +1,5 @@
 auth_users_triggers|auth.users|0
+bucket|product-images|public=false limit=5242880 mime=image/jpeg,image/png,image/webp
 column|retailos.audit_logs.action|text notnull=true default=- identity= generated=
 column|retailos.audit_logs.actor_type|text notnull=true default=39adc87b01c2d0ab6b3c8b867fbf24b8 identity= generated=
 column|retailos.audit_logs.actor_user_id|uuid notnull=false default=- identity= generated=
@@ -173,6 +174,7 @@ column|retailos.jewellery_designs.created_at|timestamp with time zone notnull=tr
 column|retailos.jewellery_designs.design_code|text notnull=true default=- identity= generated=
 column|retailos.jewellery_designs.hsn_code|text notnull=false default=- identity= generated=
 column|retailos.jewellery_designs.id|uuid notnull=true default=f3b72bb359a50b640590970a2ab8e514 identity= generated=
+column|retailos.jewellery_designs.image_path|text notnull=false default=- identity= generated=
 column|retailos.jewellery_designs.is_active|boolean notnull=true default=b326b5062b2f0e69046810717534cb09 identity= generated=
 column|retailos.jewellery_designs.kind|text notnull=true default=- identity= generated=
 column|retailos.jewellery_designs.name|text notnull=true default=- identity= generated=
@@ -264,6 +266,7 @@ column|retailos.products.category_id|uuid notnull=true default=- identity= gener
 column|retailos.products.created_at|timestamp with time zone notnull=true default=75230039beb12ce952f24927f2bfa2f2 identity= generated=
 column|retailos.products.hsn_code|text notnull=false default=- identity= generated=
 column|retailos.products.id|uuid notnull=true default=f3b72bb359a50b640590970a2ab8e514 identity= generated=
+column|retailos.products.image_path|text notnull=false default=- identity= generated=
 column|retailos.products.is_active|boolean notnull=true default=b326b5062b2f0e69046810717534cb09 identity= generated=
 column|retailos.products.name|text notnull=true default=- identity= generated=
 column|retailos.products.style_code|text notnull=true default=- identity= generated=
@@ -632,6 +635,7 @@ function|retailos_private.ensure_category(uuid,text,text)|secdef=true config=sea
 function|retailos_private.ensure_profile(uuid)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
 function|retailos_private.fail(text,jsonb)|secdef=false config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=true
 function|retailos_private.generate_code(uuid,text,text,integer)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
+function|retailos_private.guard_image_path()|secdef=false config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
 function|retailos_private.has_any_permission(uuid,text)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=true
 function|retailos_private.has_branch_access(uuid)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=true
 function|retailos_private.has_branch_permission(uuid,text)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=true
@@ -639,6 +643,10 @@ function|retailos_private.has_tenant_access(uuid)|secdef=true config=search_path
 function|retailos_private.has_tenant_permission(uuid,text)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=true
 function|retailos_private.idem_begin(uuid,text,uuid,text)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
 function|retailos_private.idem_complete(uuid,text,uuid,jsonb)|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
+function|retailos_private.image_path_kind(text)|secdef=false config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=false
+function|retailos_private.image_path_ok(text)|secdef=false config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=false
+function|retailos_private.image_path_owner(text)|secdef=false config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=false
+function|retailos_private.image_path_tenant(text)|secdef=false config=search_path="" owner=postgres execute: public=false anon=false authenticated=true service_role=false
 function|retailos_private.invoice_items_guard()|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
 function|retailos_private.invoice_reconciles()|secdef=true config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
 function|retailos_private.invoices_guard()|secdef=false config=search_path="" owner=postgres execute: public=false anon=false authenticated=false service_role=false
@@ -823,6 +831,9 @@ schema_usage|retailos|authenticated=true
 schema_usage|retailos|service_role=true
 schema|retailos_private|owner=postgres
 schema|retailos|owner=postgres
+storage_policy|product_images_delete|DELETE roles=authenticated using=cca027d41fcc247033da5e0f802a7004 check=-
+storage_policy|product_images_insert|INSERT roles=authenticated using=- check=cca027d41fcc247033da5e0f802a7004
+storage_policy|product_images_read|SELECT roles=authenticated using=1fe74cc7b630770cc9556ebd561c6867 check=-
 table_privs|retailos.audit_logs|anon=-
 table_privs|retailos.audit_logs|authenticated=SELECT
 table_privs|retailos.audit_logs|service_role=-
@@ -981,6 +992,8 @@ trigger|retailos.invoices.invoices_audit|enabled=O 2e9443df610d157300bdb3d000536
 trigger|retailos.invoices.invoices_immutable|enabled=O 42c2d003f9271a5cfc0f77aa8321dafb
 trigger|retailos.invoices.invoices_no_truncate|enabled=O c898bc0df0b96c0bd8195fdba53b1072
 trigger|retailos.invoices.invoices_reconcile|enabled=O 8bbaaf8dff4e0491851c145f2fe155ae
+trigger|retailos.jewellery_designs.jewellery_designs_image_audit|enabled=O 71176acb57fb41615f107b869a15466a
+trigger|retailos.jewellery_designs.jewellery_designs_image_guard|enabled=O 232fe8155feb7d57fc6b4373ff431cb0
 trigger|retailos.jewellery_designs.jewellery_designs_kind|enabled=O da9110e89ce587addafda26788b98e44
 trigger|retailos.jewellery_items.jewellery_items_audit|enabled=O ff6123cab1f711ef3011da46f207894e
 trigger|retailos.jewellery_items.jewellery_items_sold_lock|enabled=O 73c861a4e4ac6855a9d63122655d21d4
@@ -994,6 +1007,8 @@ trigger|retailos.permission_overrides.permission_overrides_audit|enabled=O 1f80d
 trigger|retailos.product_variants.product_variants_audit|enabled=O 98fb0b53eb883ebc2a09967c0c1b6bcf
 trigger|retailos.product_variants.product_variants_price_guard|enabled=O 2c2231f748d015ccfb1844ae24e7b1b1
 trigger|retailos.product_variants.product_variants_updated|enabled=O 9cfce534dba371d6c843936c8ca613fd
+trigger|retailos.products.products_image_audit|enabled=O 6460df8bdcfa7fde9a7c92bf503d9763
+trigger|retailos.products.products_image_guard|enabled=O dee404d414d1a3baca1691eec846dddd
 trigger|retailos.products.products_kind|enabled=O 1275b5c1c162aa79a62ecfab5b3f6df3
 trigger|retailos.products.products_updated|enabled=O 3af7c9d53e74e31900608d4b04802e3c
 trigger|retailos.profiles.profiles_updated|enabled=O eca1538ca49ef038c1a1e7b3ff67ee38

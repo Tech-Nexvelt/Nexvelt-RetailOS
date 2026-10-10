@@ -9,6 +9,13 @@
 
 begin;
 
+-- product images (migration 016): the storage policies go first because they call the functions dropped below.
+-- Image FILES are not touched: remove them through the Storage API first, otherwise the bucket delete fails and nothing is dropped.
+drop policy product_images_read on storage.objects;
+drop policy product_images_insert on storage.objects;
+drop policy product_images_delete on storage.objects;
+delete from storage.buckets where id = 'product-images';
+
 drop table retailos.audit_logs,
            retailos.barcode_aliases,
            retailos.branch_memberships,
@@ -85,6 +92,7 @@ drop function retailos.branch_membership_set_status(uuid,uuid,text),
               retailos_private.ensure_profile(uuid),
               retailos_private.fail(text,jsonb),
               retailos_private.generate_code(uuid,text,text,integer),
+              retailos_private.guard_image_path(),
               retailos_private.has_any_permission(uuid,text),
               retailos_private.has_branch_access(uuid),
               retailos_private.has_branch_permission(uuid,text),
@@ -92,6 +100,10 @@ drop function retailos.branch_membership_set_status(uuid,uuid,text),
               retailos_private.has_tenant_permission(uuid,text),
               retailos_private.idem_begin(uuid,text,uuid,text),
               retailos_private.idem_complete(uuid,text,uuid,jsonb),
+              retailos_private.image_path_kind(text),
+              retailos_private.image_path_ok(text),
+              retailos_private.image_path_owner(text),
+              retailos_private.image_path_tenant(text),
               retailos_private.invoice_items_guard(),
               retailos_private.invoice_reconciles(),
               retailos_private.invoices_guard(),

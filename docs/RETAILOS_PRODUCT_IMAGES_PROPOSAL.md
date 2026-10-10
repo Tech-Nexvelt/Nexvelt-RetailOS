@@ -1,6 +1,15 @@
 # Product images: findings, proposal and approval request
 
-**Status: NOT implemented end to end. Waiting for your approval of a storage and schema change.** Nothing was applied to the hosted project. The only things built so far need no approval: the validation library and a rehearsal of the proposed SQL on a local copy.
+**Status: APPROVED by the owner (2026-10-10): one photo per product and per jewellery DESIGN.** The proposal is now sealed migration `20261010100016_product_images.sql` (manifest prefix `512177b144f1`). It has **not** been applied to the hosted project: the owner applies it. The uploader and display work starts after that and is verified on the hosted project with a real image.
+
+## 0. Apply it (owner, after reading this)
+```powershell
+cd E:SoftwaresNexveltretailOS
+node scripts/hosted-apply-next.mjs --migration 20261010100016 --manifest 512177b144f1
+node scripts/hosted-verify.mjs --db-only          # must end: VERIFICATION PASSED
+```
+`hosted-apply-next` refuses unless the manifest you typed is current, every pinned file matches, the earlier migrations are fully present, and 016 is completely absent (it never completes a partial one). It applies 016 in ONE transaction: any failure rolls everything back. Tested locally in 8 scenarios, including a mid-migration failure. The read-only pre-check on the hosted database already shows 000 to 015 fully present and 016 at 0 of 15 objects.
+**Risk to know:** the migration creates policies on Supabase's own `storage.objects`. That is normal from the `postgres` role, but it was rehearsed only against a stand-in; if the hosted project refuses it, the transaction rolls back and nothing changes. The hosted `verify` script now also checks the bucket (private, 5 MB, 3 MIME types) and that no UPDATE or public/anon storage policy exists.
 
 ## 1. What I found (read-only, hosted project)
 | Question | Answer |
@@ -15,7 +24,7 @@
 So there is no suitable existing bucket, and there is nowhere to store a reference. Both need a change. Per your rules I have not made it.
 
 ## 2. What I need you to approve
-The file **`docs/proposals/product-images.sql`** (outside the migrations folder; not applied). If approved it becomes migration `20261010100016_product_images.sql`, which I would seal, add to the manifest and verify, and **you apply it yourself**. It adds only:
+Migration **`supabase/retailos/migrations/20261010100016_product_images.sql`** (approved, sealed, in the manifest, **not applied**; it replaced the earlier proposal file). It adds only:
 1. a **private** bucket `product-images`: 5 MB limit, JPEG/PNG/WebP only, enforced by Storage itself;
 2. `image_path` (text) on `retailos.products` and `retailos.jewellery_designs`: the storage key, never the image (no Base64 in PostgreSQL);
 3. a **guard trigger**: a stored path must be well formed and belong to the same tenant, the same kind and the same row, so a manipulated path cannot point a product at another tenant's or another product's file;
@@ -26,7 +35,7 @@ It changes no invoice, payment, stock or ledger row and no existing function, pr
 Why images attach to the **product** (clothing) and the **jewellery design**: every size/colour of a shirt shares the photo, and every tagged piece of a design shares it. That keeps one upload per product instead of one per variant or piece. If you want a photo per individual jewellery piece instead, tell me before approval; it changes the column and the path.
 
 ## 3. Rehearsal evidence (local copy of the schema, stand-in `storage`; NOT Supabase Storage itself)
-`tests/db/images-proposal.test.ts` applies the proposal file exactly as written and then attacks it. 15 of 15 tests pass:
+`tests/db/images.test.ts` runs against the real migration and attacks it. 15 of 15 tests pass:
 * the bucket is private, 5 MB, three MIME types; the two columns, three policies and four closed helper functions exist; **no update policy**;
 * an owner uploads and reads under their tenant; a manager can exactly when `product.edit` is granted; a cashier can **read** (so images show in billing) but cannot upload or delete (and a delete changes nothing);
 * **another tenant's owner cannot upload into, read or delete this tenant's images**; an outsider and an anonymous caller get nothing;
@@ -62,7 +71,8 @@ The file type is decided from the **bytes** (JPEG, PNG, WebP), never the name or
 | 12 | Existing functionality and tests | **PASS** (see the totals in the report) |
 
 ## 7. Approval checklist
-1. Approve `docs/proposals/product-images.sql` as is, or tell me what to change (per-product versus per-piece jewellery photos; the 5 MB and 200 to 6000 pixel limits; audit triggers).
-2. After approval I will: turn it into migration 016, seal it, update the manifest and the expected inventory, run all tests, and then **you** apply it and run the hosted verification script.
-3. Then I build the upload route, the uploader component (drag and drop, browse, preview, progress, replace, remove), the display components and the tests, and verify on the hosted project with a real image.
-4. No deploy and no push at any point without your explicit approval.
+1. DONE: approved with one photo per product and per jewellery design.
+2. DONE: migration 016 sealed, manifest, expected inventory, rollback, diagnostics and tests updated; 256 database tests pass. A defect found on the way (the guard trigger function was callable by PUBLIC) was fixed before sealing.
+3. OWNER: apply it and run the hosted verification (section 0).
+4. THEN I build the upload route, the uploader component (drag and drop, browse, preview, progress, replace, remove), the display components and the tests, and verify on the hosted project with a real image.
+5. No deploy and no push at any point without your explicit approval.

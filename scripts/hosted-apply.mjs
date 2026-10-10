@@ -39,7 +39,7 @@ if (!(u.hostname.includes(ref) || decodeURIComponent(u.username).endsWith("." + 
 
 const sret = join(root, "supabase", "retailos");
 const manifestText = readFileSync(join(sret, "MANIFEST.sha256"));
-const approved = env.APPROVED_MANIFEST_PREFIX || "ab468e4fbed8";
+const approved = env.APPROVED_MANIFEST_PREFIX || "512177b144f1";
 if (!createHash("sha256").update(manifestText).digest("hex").startsWith(approved)) die("manifest hash is not the approved one");
 for (const line of manifestText.toString().trim().split("\n")) {
   const [h, f] = line.split(/\s+/);
@@ -47,7 +47,7 @@ for (const line of manifestText.toString().trim().split("\n")) {
 }
 const migDir = join(sret, "migrations");
 const migs = readdirSync(migDir).filter((f) => f.endsWith(".sql")).sort();
-if (migs.length !== 16 || !migs[0].startsWith("20261010100000_") || !migs[15].startsWith("20261010100015_")) die("unexpected migration set");
+if (migs.length !== 17 || !migs[0].startsWith("20261010100000_") || !migs[16].startsWith("20261010100016_")) die("unexpected migration set");
 
 const client = new pg.Client({ connectionString: dbUrl, ssl: { rejectUnauthorized: true, ...(env.RETAILOS_DB_CA_FILE ? { ca: readFileSync(env.RETAILOS_DB_CA_FILE, "utf8") } : {}) }, connectionTimeoutMillis: 20000, statement_timeout: 120000 });
 try {

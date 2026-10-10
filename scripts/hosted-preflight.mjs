@@ -63,7 +63,7 @@ if (failed) stop("project identity mismatch");
 const sret = join(root, "supabase", "retailos");
 const manifestText = readFileSync(join(sret, "MANIFEST.sha256"));
 const manifestHash = createHash("sha256").update(manifestText).digest("hex");
-const approved = env.APPROVED_MANIFEST_PREFIX || "ab468e4fbed8";
+const approved = env.APPROVED_MANIFEST_PREFIX || "512177b144f1";
 gate("MANIFEST.sha256 hash matches the approved prefix", manifestHash.startsWith(approved), `sha256=${manifestHash.slice(0, 12)} approved=${approved}`);
 let manifestOk = true;
 for (const line of manifestText.toString().trim().split("\n")) {
@@ -78,7 +78,7 @@ const migDir = join(sret, "migrations");
 const migs = readdirSync(migDir).filter((f) => f.endsWith(".sql")).sort();
 const sums = Object.fromEntries(readFileSync(join(migDir, "SHA256SUMS"), "utf8").trim().split("\n").map((l) => l.split(/\s+/).reverse()));
 gate("SHA256SUMS matches every migration", migs.every((f) => createHash("sha256").update(readFileSync(join(migDir, f))).digest("hex") === sums[f]));
-gate("migration order: guard first, marker last, 16 files", migs[0].startsWith("20261010100000_") && migs.at(-1).startsWith("20261010100015_") && migs.length === 16, `${migs.length} files`);
+gate("migration order: guard first, images last, 17 files", migs[0].startsWith("20261010100000_") && migs.at(-1).startsWith("20261010100016_") && migs.length === 17, `${migs.length} files`);
 if (failed) stop("manifest/migration integrity");
 
 // 3. Management API identity (one read-only GET of the new project)

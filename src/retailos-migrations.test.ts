@@ -27,12 +27,13 @@ describe("retailos migrations (shared-project safety)", () => {
     }
   });
 
-  it("covers the same 14 migrations as the preserved originals, in the same order, plus the hand-written dedicated-project guard (first) and schema marker (last)", () => {
+  it("covers the same 14 migrations as the preserved originals, in the same order, plus the hand-written dedicated-project guard (first), the schema marker (second to last) and product images (last)", () => {
     const originals = readdirSync(join(ROOT, "..", "migrations")).filter((f) => f.endsWith(".sql")).sort();
     const f = files();
     expect(f[0]).toBe("20261010100000_fresh_project_guard.sql");
-    expect(f[f.length - 1]).toBe("20261010100015_schema_marker.sql");
-    expect(f.slice(1, -1)).toEqual(originals);
+    expect(f[f.length - 2]).toBe("20261010100015_schema_marker.sql");
+    expect(f[f.length - 1]).toBe("20261010100016_product_images.sql");
+    expect(f.slice(1, -2)).toEqual(originals);
   });
 
   it("never mentions Tirumala's schema: no `public.` object, no `schema public`, no auth.users trigger", () => {

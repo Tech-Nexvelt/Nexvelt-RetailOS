@@ -58,5 +58,12 @@ lines as (
   select 'marker|schema_info|app=' || app || ' version=' || schema_version::text || ' set=' || migration_set from retailos.schema_info
   union all
   select 'auth_users_triggers|auth.users|' || count(*)::text from pg_trigger where tgrelid = 'auth.users'::regclass and not tgisinternal
+  union all
+  -- product images (migration 016): the private bucket and the tenant-scoped storage policies
+  select 'bucket|' || id || '|public=' || public::text || ' limit=' || coalesce(file_size_limit::text, '-') || ' mime=' || coalesce(array_to_string(allowed_mime_types, ','), '-')
+    from storage.buckets where id = 'product-images'
+  union all
+  select 'storage_policy|' || policyname || '|' || cmd || ' roles=' || array_to_string(roles, ',') || ' using=' || coalesce(md5(qual), '-') || ' check=' || coalesce(md5(with_check), '-')
+    from pg_policies where schemaname = 'storage' and tablename = 'objects' and policyname like 'product_images_%'
 )
 select l from lines order by l;

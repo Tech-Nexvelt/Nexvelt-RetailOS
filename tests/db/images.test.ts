@@ -1,24 +1,14 @@
 /**
- * REHEARSAL of docs/proposals/product-images.sql (a proposal, not a migration). It runs the proposal file exactly as written against
- * a fresh local database with a minimal STAND-IN for Supabase's `storage` schema, then tries to break tenant isolation and the
- * permission rules. It proves the SQL logic. It does NOT prove Supabase Storage itself (signed URLs, size and MIME enforcement by the
- * storage service): those need the real project after you approve the change.
+ * Product images (migration 016): tenant isolation and permissions of the storage policies, and the image_path guard. Runs against the
+ * real migration on a fresh local database. `storage` here is a minimal STAND-IN (tests/db/shim.sql): it proves the SQL logic. It does
+ * NOT prove Supabase Storage itself (signed URLs, size and MIME enforcement by the storage service): those are checked on the hosted
+ * project after the migration is applied.
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import fs from "node:fs";
 import { randomUUID } from "node:crypto";
 import type { Client } from "pg";
 import { asUser, refused, startDb, type TestDb } from "./harness";
 import { buildWorld, type World } from "./fixtures";
-
-const STAND_IN = `
-create schema if not exists storage;
-create table storage.buckets (id text primary key, name text not null, public boolean not null default false, file_size_limit bigint, allowed_mime_types text[]);
-create table storage.objects (id uuid primary key default gen_random_uuid(), bucket_id text references storage.buckets (id), name text not null, owner uuid, metadata jsonb);
-alter table storage.objects enable row level security;
-grant usage on schema storage to authenticated, anon;
-grant select, insert, update, delete on storage.objects to authenticated;
-grant select on storage.buckets to authenticated;`;
 
 let db: TestDb;
 let c: Client;
@@ -32,8 +22,6 @@ beforeAll(async () => {
   db = await startDb();
   c = db.admin;
   w = await buildWorld(c);
-  await c.query(STAND_IN);
-  await c.query(fs.readFileSync("docs/proposals/product-images.sql", "utf8"));
   await asUser(c, w.ownerA, async (x) => {
     const p = (await x.query("select retailos.catalog_create_clothing($1, 'Image Test Shirt', 'IMG-1', 'Shirts', null, $2::jsonb, $3) as r", [w.a1.id, JSON.stringify([{ size: "M", colour: "Blue", pricePaise: 10000 }]), randomUUID()])).rows[0].r;
     productA = p.productId;
@@ -45,7 +33,7 @@ afterAll(async () => {
   await db?.stop();
 });
 
-describe("proposal SQL applies cleanly and sets up exactly what it says", () => {
+describe("migration 016 sets up exactly what it says", () => {
   it("creates a PRIVATE 5 MB bucket limited to JPEG/PNG/WebP, the two columns, the guards and three policies (no update policy)", async () => {
     const b = (await c.query("select id, public, file_size_limit::int fsl, allowed_mime_types from storage.buckets")).rows;
     expect(b).toEqual([{ id: "product-images", public: false, fsl: 5242880, allowed_mime_types: ["image/jpeg", "image/png", "image/webp"] }]);

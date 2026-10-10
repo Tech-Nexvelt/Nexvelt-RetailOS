@@ -72,7 +72,7 @@ describe("fresh-project guard", () => {
 
   it("does not treat Supabase's own platform objects as a problem", async () => {
     const platform = `
-      create schema storage;   create table storage.buckets (id text primary key);
+      create table storage.stand_in_things (id text primary key);
       create schema realtime;  create table realtime.messages (id bigint);
       create schema extensions; create function extensions.uuid_generate_v4() returns uuid language sql as 'select gen_random_uuid()';
       create schema graphql_public; create function graphql_public.graphql() returns jsonb language sql as 'select 1::text::jsonb';
@@ -209,6 +209,13 @@ describe("a freshly migrated dedicated project", () => {
       "-- restore from backup or fix forward.",
       "",
       "begin;",
+      "",
+      "-- product images (migration 016): the storage policies go first because they call the functions dropped below.",
+      "-- Image FILES are not touched: remove them through the Storage API first, otherwise the bucket delete fails and nothing is dropped.",
+      "drop policy product_images_read on storage.objects;",
+      "drop policy product_images_insert on storage.objects;",
+      "drop policy product_images_delete on storage.objects;",
+      "delete from storage.buckets where id = 'product-images';",
       "",
       `drop table ${tables.map((t) => "retailos." + t).join(",\n           ")};`,
       "",

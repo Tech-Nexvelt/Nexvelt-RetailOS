@@ -37,6 +37,7 @@ retailos_private.ensure_category(uuid,text,text)|1c19b302feea7410195027d8593532b
 retailos_private.ensure_profile(uuid)|7e258d4e89806edcfebdc838e2cbeb7c
 retailos_private.fail(text,jsonb)|ba16a7e5b8f0125a058b479ce953d3a3
 retailos_private.generate_code(uuid,text,text,integer)|3a2f15febbc6560f59332b4226ba32d5
+retailos_private.guard_image_path()|65fd2bf361dd544016f3be131b6aedcc
 retailos_private.has_any_permission(uuid,text)|d3e7b25b1582be2dd7f7ea5a9aa0b05f
 retailos_private.has_branch_access(uuid)|12950ffbf56b3a45731ec37edb3c3788
 retailos_private.has_branch_permission(uuid,text)|9d7be4ab674731bb7eaefbc25fb371a0
@@ -44,6 +45,10 @@ retailos_private.has_tenant_access(uuid)|ca093534312977b551b771fa4341bfa0
 retailos_private.has_tenant_permission(uuid,text)|3699219f046863e6a8b87d894a5f6b5e
 retailos_private.idem_begin(uuid,text,uuid,text)|ab6a43adc71999a9d03fab0632bcc53f
 retailos_private.idem_complete(uuid,text,uuid,jsonb)|0b5da271d04b43900536a68c63631ecf
+retailos_private.image_path_kind(text)|3fa841d85575955d2abcdc9ebcb63d2b
+retailos_private.image_path_ok(text)|28db8c5e70041550100f885a90181c7d
+retailos_private.image_path_owner(text)|b83e805fcb68f4714cf3f33dd958b077
+retailos_private.image_path_tenant(text)|2be4c6c9d45f6f59d93e49164669782f
 retailos_private.invoice_items_guard()|27ded303510a3baef33238c44196c7fd
 retailos_private.invoice_reconciles()|5df9522a357d5f453f03448b80b71303
 retailos_private.invoices_guard()|b4711abc69581590a277a65229b4ce81
