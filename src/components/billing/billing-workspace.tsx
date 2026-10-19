@@ -22,6 +22,8 @@ import { BILLING_ERRORS } from "@/domain/errors";
 import { formatINR, parseRupees, type Paise } from "@/domain/money";
 import type { AckStatus } from "@/lib/scanner/protocol";
 import { PhoneScannerPanel, type ScannerApi } from "./phone-scanner-panel";
+import { ProductImage } from "@/components/ui/product-image";
+import { ProductThumb } from "@/components/products/product-thumb";
 import { PrintableReceipt, ReceiptView, receiptFromInvoice, type Business } from "./receipt";
 
 /** The server actions this screen calls. Injected so the screen can be tested without a server. */
@@ -64,6 +66,18 @@ const toInput = (l: QuotedLine): CartLineInput => ({
   ...(l.discountPaise > 0 ? { discountPaise: l.discountPaise, discountReason: l.discountReason ?? "" } : {}),
 });
 
+const DEFAULT_GRID_ITEMS = [
+  { id: "v101", name: "Men's Premium Shirt", detail: "M, L, XL · 12 in stock", pricePaise: 129900, category: "clothing" },
+  { id: "v102", name: "Women's Kurti", detail: "M, L, XL · 8 in stock", pricePaise: 89900, category: "clothing" },
+  { id: "j103", name: "Gold Jhumka", detail: "22k · 5.2 g · 3 in stock", pricePaise: 4500000, category: "gold" },
+  { id: "j104", name: "Imitation Bracelet", detail: "Tag: IJ-1023 · 15 in stock", pricePaise: 49900, category: "imitation" },
+  { id: "v105", name: "Denim Jeans", detail: "30, 32, 34 · 10 in stock", pricePaise: 159900, category: "clothing" },
+  { id: "v106", name: "Ladies Handbag", detail: "5 in stock", pricePaise: 129900, category: "accessories" },
+  { id: "j107", name: "Gold Chain", detail: "22k · 8.5 g · 2 in stock", pricePaise: 6850000, category: "gold" },
+  { id: "j108", name: "Fashion Earrings", detail: "Tag: IJ-554 · 20 in stock", pricePaise: 29900, category: "imitation" },
+  { id: "v1", name: "Cotton Shirt", detail: "M / Blue", pricePaise: 129900, category: "clothing" },
+];
+
 export function BillingWorkspace({ api, scanner, business, canDiscount, demo, newKey = () => crypto.randomUUID() }: Props) {
   const scanRef = useRef<HTMLInputElement>(null);
   const [session, setSession] = useState<SessionState | null>(null);
@@ -84,6 +98,9 @@ export function BillingWorkspace({ api, scanner, business, canDiscount, demo, ne
   const [discAmount, setDiscAmount] = useState("");
   const [discReason, setDiscReason] = useState("");
   const [online, setOnline] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [productTab, setProductTab] = useState("all");
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const key = useRef(newKey());
   const lastRequest = useRef<Parameters<BillingApi["completeCheckout"]>[0] | null>(null);
   const searchSeq = useRef(0);
@@ -357,6 +374,7 @@ export function BillingWorkspace({ api, scanner, business, canDiscount, demo, ne
     setLines([]);
     setTotals({ total: 0, discount: 0, tax: 0, taxConfigured: totals.taxConfigured });
     setInvoice(null);
+    setShowCheckoutModal(false);
     setPhase("idle");
     setMessage(null);
     setResults([]);
@@ -434,9 +452,12 @@ export function BillingWorkspace({ api, scanner, business, canDiscount, demo, ne
             {results.map((r) => (
               <li key={r.itemId} className="border-b border-line last:border-b-0">
                 <button type="button" disabled={!r.available || locked} onClick={() => pick(r.itemId)} className="flex w-full items-center justify-between gap-3 px-3 py-3 text-left hover:bg-app disabled:opacity-50">
-                  <span>
-                    <span className="font-medium">{r.name}</span> <span className="text-muted">{r.detail}</span>
-                    {!r.available ? <span className="ml-2 text-sm text-danger">Not available</span> : null}
+                  <span className="flex items-center gap-3">
+                    {r.imageUrl ? <ProductThumb url={r.imageUrl} name={r.name} size={40} className="h-10 w-10" /> : <ProductImage name={r.name} size={40} className="w-10 h-10 rounded-lg shrink-0" />}
+                    <span>
+                      <span className="font-medium">{r.name}</span> <span className="text-muted">{r.detail}</span>
+                      {!r.available ? <span className="ml-2 text-sm text-danger">Not available</span> : null}
+                    </span>
                   </span>
                   <span className="font-semibold">{formatINR(r.unitPricePaise)}</span>
                 </button>
@@ -570,9 +591,12 @@ function CartTable(p: {
       {p.lines.map((l) => (
         <li key={l.itemId} className="border-b border-line p-3 last:border-b-0">
           <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <p className="truncate font-medium">{l.name}</p>
-              <p className="text-sm text-muted">{l.detail} · {formatINR(l.unitPricePaise)}{l.discountPaise > 0 ? ` · discount ${formatINR(l.discountPaise)}` : ""}</p>
+            <div className="flex min-w-0 items-start gap-3">
+              {l.imageUrl ? <ProductThumb url={l.imageUrl} name={l.name} size={48} className="h-12 w-12" /> : <ProductImage name={l.name} size={48} className="w-12 h-12 rounded-xl shrink-0" />}
+              <div className="min-w-0">
+                <p className="truncate font-medium">{l.name}</p>
+                <p className="text-sm text-muted">{l.detail} · {formatINR(l.unitPricePaise)}{l.discountPaise > 0 ? ` · discount ${formatINR(l.discountPaise)}` : ""}</p>
+              </div>
             </div>
             <p className="font-semibold" data-testid="line-total">{formatINR(l.lineTotalPaise)}</p>
           </div>

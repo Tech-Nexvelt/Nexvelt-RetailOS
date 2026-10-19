@@ -16,11 +16,13 @@ interface EmptyStateProps {
 
 export function EmptyState({ title, description, action, icon }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center gap-2 px-6 py-12 text-center">
-      <span className="text-muted">{icon ?? <PackageOpen aria-hidden size={32} />}</span>
-      <p className="text-lg font-semibold text-ink">{title}</p>
-      {description ? <p className="max-w-sm text-muted">{description}</p> : null}
-      {action ? <div className="mt-2">{action}</div> : null}
+    <div className="flex flex-col items-center justify-center gap-3 px-6 py-14 text-center bg-white rounded-2xl border border-slate-200 shadow-2xs">
+      <div className="w-16 h-16 rounded-2xl bg-teal-50 text-[#00bba7] flex items-center justify-center border border-teal-100">
+        {icon ?? <PackageOpen aria-hidden size={32} />}
+      </div>
+      <p className="text-base font-bold text-slate-900">{title}</p>
+      {description ? <p className="max-w-sm text-xs text-slate-500">{description}</p> : null}
+      {action ? <div className="mt-1">{action}</div> : null}
     </div>
   );
 }
@@ -35,12 +37,15 @@ export function ErrorState({
   onRetry?: () => void;
 }) {
   return (
-    <div role="alert" className="flex flex-col items-center gap-2 px-6 py-12 text-center">
-      <p className="text-lg font-semibold text-danger">{title}</p>
-      <p className="max-w-sm text-muted">{description}</p>
+    <div role="alert" className="flex flex-col items-center justify-center gap-3 px-6 py-14 text-center bg-white rounded-2xl border border-slate-200 shadow-2xs">
+      <div className="w-16 h-16 rounded-2xl bg-red-50 text-red-500 flex items-center justify-center border border-red-100">
+        <RefreshCw aria-hidden size={28} />
+      </div>
+      <p className="text-base font-bold text-slate-900">{title}</p>
+      <p className="max-w-sm text-xs text-slate-500">{description}</p>
       {onRetry ? (
-        <Button onClick={onRetry} className="mt-2">
-          <RefreshCw aria-hidden size={16} /> Try again
+        <Button onClick={onRetry} className="mt-1 bg-[#00bba7] hover:bg-[#009688] text-white font-bold rounded-xl text-xs px-4 py-2">
+          <RefreshCw aria-hidden size={14} /> Try again
         </Button>
       ) : null}
     </div>
